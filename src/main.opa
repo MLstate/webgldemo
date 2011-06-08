@@ -248,7 +248,7 @@ drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPosit
 drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
   viewbox = setup_boxes() ;
   rec aux(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
-    do Webgl.clear(gl, Webgl.COLOR_BUFFER_BIT(gl)); // TODO: | gl.DEPTH_BUFFER_BIT);
+    do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
     do drawScene_for_a_viewport(gl, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), shaderProgram, squareVertexPositionBuffer, repcoords);
     do drawScene_for_a_viewport(gl, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), shaderProgram, squareVertexPositionBuffer, repcoords);
     do drawScene_for_a_viewport(gl, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), shaderProgram, squareVertexPositionBuffer, repcoords);

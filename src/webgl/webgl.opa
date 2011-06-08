@@ -75,7 +75,7 @@ Webgl = {{
 
   viewport : Webgl.Context.private, Webgl.GLint, Webgl.GLint, Webgl.GLsizei, Webgl.GLsizei -> void = %% WebglPlugin.viewport %% ;
 
-  
+  GLbitfield_OR : Webgl.GLbitfield, Webgl.GLbitfield -> Webgl.GLbitfield = %% WebglPlugin.GLbitfield_OR %% ;
   DEPTH_BUFFER_BIT : Webgl.Context.private -> Webgl.GLbitfield = %% WebglPlugin.DEPTH_BUFFER_BIT %% ;
   STENCIL_BUFFER_BIT : Webgl.Context.private -> Webgl.GLbitfield = %% WebglPlugin.STENCIL_BUFFER_BIT %% ;
   COLOR_BUFFER_BIT : Webgl.Context.private -> Webgl.GLbitfield = %% WebglPlugin.COLOR_BUFFER_BIT %% ;

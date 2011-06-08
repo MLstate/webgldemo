@@ -183,6 +183,10 @@
 { gl.viewport(x, y, width, height); }
 
 
+##register GLbitfield_OR : Webgl.GLbitfield, Webgl.GLbitfield -> Webgl.GLbitfield
+##args(a, b)
+{ return (a | b); }
+
 /* ClearBufferMask */
 ##register DEPTH_BUFFER_BIT : Webgl.Context.private -> Webgl.GLbitfield
 ##args(gl)
