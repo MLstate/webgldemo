@@ -17,7 +17,6 @@ mat3 = {{
 }}
 
 mat4 = {{
-     //to_llarray : mat4 -> llarray(float) = %% glMatrixPlugin.to_llarray %% ;
      to_list : mat4 -> list(float) = %% glMatrixPlugin.to_list %% ;
      str : mat4 -> string = %% glMatrixPlugin.str %%
      create : -> mat4 = %% glMatrixPlugin.create %% ;
