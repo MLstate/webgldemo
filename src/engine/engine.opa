@@ -215,8 +215,8 @@ setup_boxes(eng) =
     _ZX=g(0, 0, w_l, h_d); _3D=g(w_l+sep_largeur, 0, w_r, h_d) }
 ;
 
-drawScene_for_a_viewport(eng, viewport, eye, up, shaderProgram, squareVertexPositionBuffer, repcoords) =
-  gl = eng.context;
+drawScene_for_a_viewport(eng, viewport, eye, up, squareVertexPositionBuffer) =
+  gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = 
     f = vec3.from_public ;
@@ -257,19 +257,19 @@ drawScene_for_a_viewport(eng, viewport, eye, up, shaderProgram, squareVertexPosi
   void
 ;
 
-drawScene(eng, shaderProgram, squareVertexPositionBuffer, repcoords) =
+drawScene(eng, squareVertexPositionBuffer) =
   viewbox = setup_boxes(eng) ;
-  rec aux(eng, shaderProgram, squareVertexPositionBuffer, repcoords) =
+  rec aux(eng, squareVertexPositionBuffer) =
     gl = eng.context;
     do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), shaderProgram, squareVertexPositionBuffer, repcoords);
-    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), shaderProgram, squareVertexPositionBuffer, repcoords);
-    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), shaderProgram, squareVertexPositionBuffer, repcoords);
-    do drawScene_for_a_viewport(eng, viewbox._3D, (15.0, 10.0, 15.0), (0.0, 1.0, 0.0), shaderProgram, squareVertexPositionBuffer, repcoords);
-    do RequestAnimationFrame.request((_ -> aux(eng, shaderProgram, squareVertexPositionBuffer, repcoords)), #{id_canvas_area});
+    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), squareVertexPositionBuffer);
+    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), squareVertexPositionBuffer);
+    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), squareVertexPositionBuffer);
+    do drawScene_for_a_viewport(eng, viewbox._3D, (15.0, 10.0, 15.0), (0.0, 1.0, 0.0), squareVertexPositionBuffer);
+    do RequestAnimationFrame.request((_ -> aux(eng, squareVertexPositionBuffer)), #{id_canvas_area});
     void
     ;
-  aux(eng, shaderProgram, squareVertexPositionBuffer, repcoords) 
+  aux(eng, squareVertexPositionBuffer) 
 ;
 
 initGL(canvas_sel, width, height) : void =
@@ -289,7 +289,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene(eng, eng.shaderProgram, squareVertexPositionBuffer, eng.static_buffers.repcoords);
+    do drawScene(eng, squareVertexPositionBuffer);
     void
   | { none } -> error("no context found")
   end ;
