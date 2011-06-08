@@ -266,7 +266,7 @@ initGL(canvas) : void =
     repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
     shaderProgram = initShaders(gl);
     //Clear screen and make everything black
-    do Webgl.clearColor(gl, 0.0, 0.0, 0.0, 1.0);
+    do Webgl.clearColor(gl, 0.9, 0.9, 0.9, 1.0);
     //we should do depth testing so that things drawn behind other
     //things should be hidden by the things in front of them).
     do Webgl.clearDepth(gl, 1.0);
