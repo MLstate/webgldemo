@@ -257,7 +257,7 @@ drawScene_for_a_viewport(eng, viewport, eye, up, squareVertexPositionBuffer) =
   void
 ;
 
-drawScene(eng, squareVertexPositionBuffer) =
+drawScene_and_register(eng, squareVertexPositionBuffer) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng, squareVertexPositionBuffer) =
     gl = eng.context;
@@ -289,7 +289,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene(eng, squareVertexPositionBuffer);
+    do drawScene_and_register(eng, squareVertexPositionBuffer);
     void
   | { none } -> error("no context found")
   end ;
