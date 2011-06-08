@@ -1,8 +1,39 @@
 ##opa-type list('a)
 
-##extern-type mat4
+/* ---- vec3 ---- */
+
 ##extern-type vec3.private
 ##opa-type vec3
+
+##register vec3_private_from_public : vec3 -> vec3.private
+##args(ovec)
+{ return [ ovec.f1, ovec.f2, ovec.f3 ]; }
+
+
+/* ---- mat3 ---- */
+
+##extern-type mat3
+
+##register mat3_create : -> mat3
+##args()
+{ return mat3.create(); }
+
+##register mat3_transpose : mat3, mat3 -> void
+##args(mat, dest)
+{ return mat3.transpose(mat, dest); }
+
+##register mat3_to_list : mat3 -> opa[ list(float) ]
+##args(src)
+{ return js2list([src[0],src[1],src[2],src[3],src[4],src[5],src[6],src[7],src[8]].reverse()); }
+
+##register mat3_str : mat3 -> string
+##args(mat)
+{ return mat3.str(mat); }
+
+
+/* ---- mat4 ---- */
+
+##extern-type mat4
 
 ##register to_list : mat4 -> opa[ list(float) ]
 ##args(src)
@@ -20,10 +51,6 @@
 ##args(dest)
 { mat4.identity(dest); }
 
-##register vec3_private_from_public : vec3 -> vec3.private
-##args(ovec)
-{ return [ ovec.f1, ovec.f2, ovec.f3 ]; }
-
 ##register translate : mat4, vec3.private, mat4 -> void
 ##args(mat, vec, dest)
 { mat4.translate(mat, vec, dest); }
@@ -40,24 +67,6 @@
 ##args(mat, mat2, dest)
 { return mat4.multiply(mat, mat2, dest); }
 
-##extern-type mat3
-
 ##register toInverseMat3 : mat4, mat3 -> void
 ##args(mat, dest)
 { mat4.toInverseMat3(mat, dest); }
-
-##register mat3_create : -> mat3
-##args()
-{ return mat3.create(); }
-
-##register mat3_transpose : mat3, mat3 -> void
-##args(mat, dest)
-{ return mat3.transpose(mat, dest); }
-
-##register mat3_to_list : mat3 -> opa[ list(float) ]
-##args(src)
-{ return js2list([src[0],src[1],src[2],src[3],src[4],src[5],src[6],src[7],src[8]].reverse()); }
-
-##register mat3_str : mat3 -> string
-##args(mat)
-{ return mat3.str(mat); }
