@@ -229,7 +229,7 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, squareVertexPositionBuff
     tmp_mvMatrix = mat4.create();
     do mat4.identity(tmp_mvMatrix);
     Stack.push(Stack.create(), tmp_mvMatrix);
-  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.get(mvMatrix));
+  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
   draw_rep(r, g, b, rep) =
     do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
     do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, r, g, b);
@@ -252,8 +252,11 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, squareVertexPositionBuff
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, squareVertexPositionBuffer.itemSize, Webgl.FLOAT(gl), false, 0, 0);
   do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), squareVertexPositionBuffer.indexs);
 
-  mvMatrix = Stack.update(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(scene), n))) ;
-  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.get(mvMatrix));
+  mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(scene), n))) ;
+  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
+  do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
+  mvMatrix = Stack.update_and_push(Stack.pop(mvMatrix), (o, n -> mat4.translate(o, vec3.from_public((2.0, 2.0, 0.0)), n)));
+  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
   do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
 
   void
