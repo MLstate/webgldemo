@@ -20,7 +20,7 @@
 ##args(dest)
 { mat4.identity(dest); }
 
-##register vec3_public_to_private : vec3 -> vec3.private
+##register vec3_private_from_public : vec3 -> vec3.private
 ##args(ovec)
 { return [ ovec.f1, ovec.f2, ovec.f3 ]; }
 

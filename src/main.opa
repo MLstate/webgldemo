@@ -215,7 +215,7 @@ drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPosit
   //do Log.debug("drawScene", "."); 
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = 
-    f = mat4.vec3_public_to_private ;
+    f = vec3.from_public ;
     tmp_pMatrix = mat4.create();
     do mat4.perspective(45., float_of_int(width) / float_of_int(height), 0.1, 100.0, tmp_pMatrix);
     c = mat4.create() ;
@@ -226,8 +226,8 @@ drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPosit
   mvMatrix = 
     tmp_mvMatrix = mat4.create();
     do mat4.identity(tmp_mvMatrix);
-    //do mat4.translate(tmp_mvMatrix, mat4.vec3_public_to_private((-1.5, 0.0, -7.0)), tmp_mvMatrix);
-    //do mat4.translate(tmp_mvMatrix, mat4.vec3_public_to_private((3.0, 0.0, .0)), tmp_mvMatrix);
+    //do mat4.translate(tmp_mvMatrix, vec3.from_public((-1.5, 0.0, -7.0)), tmp_mvMatrix);
+    //do mat4.translate(tmp_mvMatrix, vec3.from_public((3.0, 0.0, .0)), tmp_mvMatrix);
     tmp_mvMatrix;
   do Log.debug("mvMatrix", mat4.str(mvMatrix));
   do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true

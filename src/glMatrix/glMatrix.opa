@@ -1,8 +1,13 @@
+
+type vec3.private = external;
+type vec3 = (float, float, float);
+
 type mat3 = external;
 type mat4 = external;
-type vec3.private = external;
 
-type vec3 = (float, float, float);
+vec3 = {{
+     from_public : vec3 -> vec3.private = %% glMatrixPlugin.vec3_private_from_public %% ;
+}}
 
 mat3 = {{
      str : mat3 -> string = %% glMatrixPlugin.mat3_str %%
@@ -21,6 +26,5 @@ mat4 = {{
      translate : mat4, vec3.private, mat4 -> void = %% glMatrixPlugin.translate %% ;
      lookAt : vec3.private, vec3.private, vec3.private, mat4 -> void = %% glMatrixPlugin.lookAt %% ;
      multiply : mat4, mat4, mat4 -> void = %% glMatrixPlugin.multiply %% ;
-     vec3_public_to_private : vec3 -> vec3.private = %% glMatrixPlugin.vec3_public_to_private %% ;
      toInverseMat3 : mat4, mat3 -> void = %% glMatrixPlugin.toInverseMat3 %% ;
 }}
