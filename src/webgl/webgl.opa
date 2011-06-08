@@ -27,7 +27,6 @@ Webgl = {{
   Float32Array = {{
     from_float_list : list(float) -> Webgl.Float32Array = %% WebglPlugin.Float32Array_from_float_list %% ;
     to_ArrayBuffer : Webgl.Float32Array -> Webgl.ArrayBuffer = %% WebglPlugin.Float32Array_to_ArrayBuffer %% ;
-    to_float_list : Webgl.Float32Array -> list(float) = %% WebglPlugin.Float32Array_to_float_list %% ;
   }}
 
   getContext : Dom.private.element, string -> option(Webgl.Context.private) = %% WebglPlugin.getContext %% ;

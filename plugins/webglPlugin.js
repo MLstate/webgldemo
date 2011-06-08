@@ -92,9 +92,6 @@
 ##args(a)
 { return a; }
 
-##register Float32Array_to_float_list : Webgl.Float32Array -> list(float)
-##args(b)
-{ return js2list(b); }
 
 ##register bufferData : Webgl.Context.private, Webgl.GLenum, Webgl.ArrayBuffer, Webgl.GLenum -> void
 ##args(gl, target, data, usage)
