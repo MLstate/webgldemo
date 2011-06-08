@@ -18,8 +18,8 @@ initShaders(gl) =
     do Webgl.shaderSource(gl, shader, str);
     do Webgl.compileShader(gl, shader);
     shader;
-  fragmentShader = f(Webgl.FRAGMENT_SHADER(gl), CustomShaders.shader_fs); //truc_fs(gl);
-  vertexShader = f(Webgl.VERTEX_SHADER(gl), CustomShaders.shader_vs); //truc_vs(gl); 
+  fragmentShader = f(Webgl.FRAGMENT_SHADER(gl), CustomShaders.shader_fs);
+  vertexShader = f(Webgl.VERTEX_SHADER(gl), CustomShaders.shader_vs);
   // TODO getShaderParameter
   shaderProgram = Webgl.createProgram(gl);
   do Webgl.attachShader(gl, shaderProgram, vertexShader);
@@ -45,7 +45,6 @@ initShaders(gl) =
   shaderProgram
 ;
 
-/* TODO : Float32Array */
 
 initBuffers(gl) =
   //global variable to hold the square buffer
@@ -188,11 +187,6 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
   do mat3.transpose(normalMatrix, normalMatrix);
   do Log.debug("normalMatrix", mat3.str(normalMatrix));
   do Webgl.uniformMatrix3fv(gl, shaderProgram.nMatrixUniform, false, Webgl.Float32Array.from_float_list(mat3.to_list(normalMatrix)));
-  //do Webgl.uniformMatrix4fv(gl, shaderProgram.pMatrixUniform, false, Webgl.Float32Array.from_float_list(mat4.to_list(pMatrix)));
-  //Webgl.uniformMatrix4fv(gl, shaderProgram.mvMatrixUniform, false, Webgl.Float32Array.from_float_list(mat4.to_list(mvMatrix)))
-  //plop(gl, shaderProgram.pMatrixUniform, pMatrix, shaderProgram.mvMatrixUniform, mvMatrix, false)
-  //do my_uniformMatrix4fv(gl, shaderProgram.pMatrixUniform, false, pMatrix);
-  //my_uniformMatrix4fv(gl, shaderProgram.mvMatrixUniform, false, mvMatrix)
   void
 ;
 
@@ -212,7 +206,6 @@ setup_boxes() =
 ;
 
 drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPositionBuffer, repcoords) =
-  //do Log.debug("drawScene", "."); 
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = 
     f = vec3.from_public ;
@@ -222,12 +215,9 @@ drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPosit
     do mat4.lookAt(f(eye), f((0.0, 0.0, 0.0)), f(up), c);
     do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
     tmp_pMatrix;
-  do Log.debug("pMatrix", mat4.str(pMatrix));
   mvMatrix = 
     tmp_mvMatrix = mat4.create();
     do mat4.identity(tmp_mvMatrix);
-    //do mat4.translate(tmp_mvMatrix, vec3.from_public((-1.5, 0.0, -7.0)), tmp_mvMatrix);
-    //do mat4.translate(tmp_mvMatrix, vec3.from_public((3.0, 0.0, .0)), tmp_mvMatrix);
     tmp_mvMatrix;
   do Log.debug("mvMatrix", mat4.str(mvMatrix));
   do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
@@ -254,8 +244,6 @@ drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPosit
   do draw_rep(0.0, 1.0, 0.0, repcoords.y);
   do draw_rep(0.0, 0.0, 1.0, repcoords.z);
 
-  //do Webgl.drawArrays(gl, Webgl.TRIANGLE_STRIP(gl), 0, squareVertexPositionBuffer.numItems);
-  //do RequestAnimationFrame.request((_ -> drawScene_for_a_viewport(gl, viewport, shaderProgram, squareVertexPositionBuffer, repcoords)), #{id_canvas_area});
   void
 ;
 
@@ -273,11 +261,9 @@ drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
   aux(gl, shaderProgram, squareVertexPositionBuffer, repcoords) 
 ;
 
-  initGL(canvas) : void = 
-    do jlog("got some context 55602");
+  initGL(canvas) : void =
     match Webgl.getContext(canvas, "experimental-webgl") with
     | { some=gl } ->
-      do jlog("got some context");
       squareVertexPositionBuffer = initBuffers(gl);
       repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
       shaderProgram = initShaders(gl);
