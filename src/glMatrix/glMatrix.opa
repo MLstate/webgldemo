@@ -17,13 +17,13 @@ mat3 = {{
 }}
 
 mat4 = {{
-     to_list : mat4 -> list(float) = %% glMatrixPlugin.to_list %% ;
-     str : mat4 -> string = %% glMatrixPlugin.str %%
-     create : -> mat4 = %% glMatrixPlugin.create %% ;
-     perspective : float, float, float, float, mat4 -> void = %% glMatrixPlugin.perspective %% ;
-     identity : mat4 -> void = %% glMatrixPlugin.identity %% ;
-     translate : mat4, vec3.private, mat4 -> void = %% glMatrixPlugin.translate %% ;
-     lookAt : vec3.private, vec3.private, vec3.private, mat4 -> void = %% glMatrixPlugin.lookAt %% ;
-     multiply : mat4, mat4, mat4 -> void = %% glMatrixPlugin.multiply %% ;
-     toInverseMat3 : mat4, mat3 -> void = %% glMatrixPlugin.toInverseMat3 %% ;
+     to_list : mat4 -> list(float) = %% glMatrixPlugin.mat4_to_list %% ;
+     str : mat4 -> string = %% glMatrixPlugin.mat4_str %%
+     create : -> mat4 = %% glMatrixPlugin.mat4_create %% ;
+     perspective : float, float, float, float, mat4 -> void = %% glMatrixPlugin.mat4_perspective %% ;
+     identity : mat4 -> void = %% glMatrixPlugin.mat4_identity %% ;
+     translate : mat4, vec3.private, mat4 -> void = %% glMatrixPlugin.mat4_translate %% ;
+     lookAt : vec3.private, vec3.private, vec3.private, mat4 -> void = %% glMatrixPlugin.mat4_lookAt %% ;
+     multiply : mat4, mat4, mat4 -> void = %% glMatrixPlugin.mat4_multiply %% ;
+     toInverseMat3 : mat4, mat3 -> void = %% glMatrixPlugin.mat4_toInverseMat3 %% ;
 }}
