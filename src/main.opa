@@ -278,8 +278,6 @@ drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
     match Webgl.getContext(canvas, "experimental-webgl") with
     | { some=gl } ->
       do jlog("got some context");
-      do Webgl.set_viewportWidth(gl, width); 
-      do Webgl.set_viewportHeight(gl, height);
       squareVertexPositionBuffer = initBuffers(gl);
       repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
       shaderProgram = initShaders(gl);

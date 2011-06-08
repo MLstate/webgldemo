@@ -18,20 +18,6 @@
 }
 
 
-##register set_viewportWidth : Webgl.Context.private, int -> void
-##args(gl, width)
-{ return gl.viewportWidth = width; }
-##register get_viewportWidth : Webgl.Context.private -> int
-##args(gl)
-{ return gl.viewportWidth; }
-
-##register set_viewportHeight : Webgl.Context.private, int -> void
-##args(gl, height)
-{ return gl.viewportHeight = height; }
-##register get_viewportHeight : Webgl.Context.private -> int
-##args(gl)
-{ return gl.viewportHeight; }
-
 ##extern-type Webgl.WebGLBuffer
 
 ##register createBuffer : Webgl.Context.private -> Webgl.WebGLBuffer

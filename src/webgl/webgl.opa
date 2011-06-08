@@ -32,11 +32,6 @@ Webgl = {{
 
   getContext : Dom.private.element, string -> option(Webgl.Context.private) = %% WebglPlugin.getContext %% ;
 
-  set_viewportWidth : Webgl.Context.private, int -> void = %% WebglPlugin.set_viewportWidth %% ;
-  get_viewportWidth : Webgl.Context.private -> int = %% WebglPlugin.get_viewportWidth %% ;
-  set_viewportHeight : Webgl.Context.private, int -> void = %% WebglPlugin.set_viewportHeight %% ;
-  get_viewportHeight : Webgl.Context.private -> int = %% WebglPlugin.get_viewportHeight %% ;
-
   createBuffer : Webgl.Context.private -> Webgl.WebGLBuffer = %% WebglPlugin.createBuffer %% ;
   set_itemSize : Webgl.WebGLBuffer, int -> void = %% WebglPlugin.set_itemSize %%;
   set_numItems : Webgl.WebGLBuffer, int -> void = %% WebglPlugin.set_numItems %%;
