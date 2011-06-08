@@ -87,7 +87,7 @@
 
 ##register Float32Array_from_float_list : opa[ list(float) ] -> Webgl.Float32Array
 ##args(l)
-{ var y = "piloupiloupiloupilou"; return new Float32Array(list2js(l)); }
+{ return new Float32Array(list2js(l)); }
 ##register Float32Array_to_ArrayBuffer : Webgl.Float32Array -> Webgl.ArrayBuffer
 ##args(a)
 { return a; }
