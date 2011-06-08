@@ -11,6 +11,7 @@ main.exe:
 		plugins/webglPlugin.opp src/webgl/webgl.opa \
 		plugins/glMatrixPlugin.opp src/glMatrix/glMatrix.opa \
 		src/custom_shaders.opa \
+		src/engine/engine.opa \
 		src/main.opa
 	mv src/main.exe main.exe
 
