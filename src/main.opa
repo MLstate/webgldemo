@@ -280,7 +280,7 @@ drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
 server_start_static_page() =
 
   <div>
-    <h1 onready={_ -> do Dom.transform([#{id_work_area} +<- <>tralalilalalala</>]); void}>Welcome to this demo</h1>
+    <h1>Welcome to this demo</h1>
     <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> initGL(Dom.of_selection(#{id_canvas_area}))}/>                       
     <div id=#{id_work_area} />
   </div> ;
