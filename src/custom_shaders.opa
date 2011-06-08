@@ -32,7 +32,7 @@ CustomShaders = {{
     void main(void) \{
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         if (uUseLighting) \{
-          highp vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
+          highp vec3 directionalLightColor = vec3(0.16, 0.16, 0.16);
           vec3 transformedNormal = uNMatrix * aVertexNormal;
           float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
           vLightWeighting = uAmbientColor + (directionalLightColor * directionalLightWeighting);
