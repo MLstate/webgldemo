@@ -259,23 +259,23 @@ drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
   aux(gl, shaderProgram, squareVertexPositionBuffer, repcoords) 
 ;
 
-  initGL(canvas) : void =
-    match Webgl.getContext(canvas, "experimental-webgl") with
-    | { some=gl } ->
-      squareVertexPositionBuffer = initBuffers(gl);
-      repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
-      shaderProgram = initShaders(gl);
-      //Clear screen and make everything black
-      do Webgl.clearColor(gl, 0.0, 0.0, 0.0, 1.0);
-      //we should do depth testing so that things drawn behind other 
-      //things should be hidden by the things in front of them). 
-      do Webgl.clearDepth(gl, 1.0);
-      do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
-      do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-      do drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords);
-      void
-    | { none } -> error("no context found")
-    end ;
+initGL(canvas) : void =
+  match Webgl.getContext(canvas, "experimental-webgl") with
+  | { some=gl } ->
+    squareVertexPositionBuffer = initBuffers(gl);
+    repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
+    shaderProgram = initShaders(gl);
+    //Clear screen and make everything black
+    do Webgl.clearColor(gl, 0.0, 0.0, 0.0, 1.0);
+    //we should do depth testing so that things drawn behind other
+    //things should be hidden by the things in front of them).
+    do Webgl.clearDepth(gl, 1.0);
+    do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
+    do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
+    do drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords);
+    void
+  | { none } -> error("no context found")
+  end ;
 
 server_start_static_page() =
 
