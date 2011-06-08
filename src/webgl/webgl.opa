@@ -99,5 +99,5 @@ Webgl = {{
 
 truc_fs : Webgl.Context.private -> Webgl.WebGLShader = %% WebglPlugin.truc_fs %% ;
 truc_vs : Webgl.Context.private -> Webgl.WebGLShader = %% WebglPlugin.truc_vs %% ;
-plop : Webgl.Context.private, Webgl.WebGLUniformLocation, glMatrix, Webgl.WebGLUniformLocation, glMatrix, Webgl.GLboolean -> void = %% WebglPlugin.plop %% ;
-my_uniformMatrix4fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, glMatrix -> void = %% WebglPlugin.my_uniformMatrix4fv %% ;
+plop : Webgl.Context.private, Webgl.WebGLUniformLocation, mat4, Webgl.WebGLUniformLocation, mat4, Webgl.GLboolean -> void = %% WebglPlugin.plop %% ;
+my_uniformMatrix4fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, mat4 -> void = %% WebglPlugin.my_uniformMatrix4fv %% ;

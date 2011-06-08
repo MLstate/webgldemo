@@ -270,15 +270,15 @@
       return shader;
 }
 
-##extern-type glMatrix
-##register plop : Webgl.Context.private, Webgl.WebGLUniformLocation, glMatrix, Webgl.WebGLUniformLocation, glMatrix, Webgl.GLboolean -> void
+##extern-type mat4
+##register plop : Webgl.Context.private, Webgl.WebGLUniformLocation, mat4, Webgl.WebGLUniformLocation, mat4, Webgl.GLboolean -> void
 ##args(gl, location_pMatrix, pMatrix, location_mvMatrix, mvMatrix, transpose)
 { 
   gl.uniformMatrix4fv(location_pMatrix, transpose, pMatrix);
   gl.uniformMatrix4fv(location_mvMatrix, transpose, mvMatrix);
 }
 
-##register my_uniformMatrix4fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, glMatrix -> void
+##register my_uniformMatrix4fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, mat4 -> void
 ##args(gl, location, transpose, value)
 { gl.uniformMatrix4fv(location, transpose, value); }
 

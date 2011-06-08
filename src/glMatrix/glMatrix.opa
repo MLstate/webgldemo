@@ -1,5 +1,5 @@
 type mat3 = external;
-type glMatrix = external;
+type mat4 = external;
 type vec3.private = external;
 
 type vec3 = (float, float, float);
@@ -12,15 +12,15 @@ mat3 = {{
 }}
 
 mat4 = {{
-     //to_llarray : glMatrix -> llarray(float) = %% glMatrixPlugin.to_llarray %% ;
-     to_list : glMatrix -> list(float) = %% glMatrixPlugin.to_list %% ;
-     str : glMatrix -> string = %% glMatrixPlugin.str %%
-     create : -> glMatrix = %% glMatrixPlugin.create %% ;
-     perspective : float, float, float, float, glMatrix -> void = %% glMatrixPlugin.perspective %% ;
-     identity : glMatrix -> void = %% glMatrixPlugin.identity %% ;
-     translate : glMatrix, vec3.private, glMatrix -> void = %% glMatrixPlugin.translate %% ;
-     lookAt : vec3.private, vec3.private, vec3.private, glMatrix -> void = %% glMatrixPlugin.lookAt %% ;
-     multiply : glMatrix, glMatrix, glMatrix -> void = %% glMatrixPlugin.multiply %% ;
+     //to_llarray : mat4 -> llarray(float) = %% glMatrixPlugin.to_llarray %% ;
+     to_list : mat4 -> list(float) = %% glMatrixPlugin.to_list %% ;
+     str : mat4 -> string = %% glMatrixPlugin.str %%
+     create : -> mat4 = %% glMatrixPlugin.create %% ;
+     perspective : float, float, float, float, mat4 -> void = %% glMatrixPlugin.perspective %% ;
+     identity : mat4 -> void = %% glMatrixPlugin.identity %% ;
+     translate : mat4, vec3.private, mat4 -> void = %% glMatrixPlugin.translate %% ;
+     lookAt : vec3.private, vec3.private, vec3.private, mat4 -> void = %% glMatrixPlugin.lookAt %% ;
+     multiply : mat4, mat4, mat4 -> void = %% glMatrixPlugin.multiply %% ;
      vec3_public_to_private : vec3 -> vec3.private = %% glMatrixPlugin.vec3_public_to_private %% ;
-     toInverseMat3 : glMatrix, mat3 -> void = %% glMatrixPlugin.toInverseMat3 %% ;
+     toInverseMat3 : mat4, mat3 -> void = %% glMatrixPlugin.toInverseMat3 %% ;
 }}
