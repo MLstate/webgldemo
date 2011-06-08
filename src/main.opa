@@ -276,7 +276,7 @@ drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords) =
       do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
       do drawScene(gl, shaderProgram, squareVertexPositionBuffer, repcoords);
       void
-    | { none } -> void//error("no context found")
+    | { none } -> error("no context found")
     end ;
 
 server_start_static_page() =
