@@ -3,7 +3,7 @@ type Webgl.Context.private = external;
 
 type Webgl.WebGLBuffer = external;
 type Webgl.GLenum = external;
-type Webgl.Float32Array = external;//llarray(float);
+type Webgl.Float32Array = external;
 type Webgl.Uint16Array = external;
 type Webgl.ArrayBuffer = external;
 type Webgl.DOMString = string;
@@ -96,8 +96,3 @@ Webgl = {{
   uniform3f : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLfloat, Webgl.GLfloat, Webgl.GLfloat -> void = %% WebglPlugin.uniform3f %% ;
 
 }}
-
-truc_fs : Webgl.Context.private -> Webgl.WebGLShader = %% WebglPlugin.truc_fs %% ;
-truc_vs : Webgl.Context.private -> Webgl.WebGLShader = %% WebglPlugin.truc_vs %% ;
-plop : Webgl.Context.private, Webgl.WebGLUniformLocation, mat4, Webgl.WebGLUniformLocation, mat4, Webgl.GLboolean -> void = %% WebglPlugin.plop %% ;
-my_uniformMatrix4fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, mat4 -> void = %% WebglPlugin.my_uniformMatrix4fv %% ;
