@@ -14,7 +14,7 @@ server_start_static_page() =
   height = 500;
   <div>
     <h1>Welcome to this demo</h1>
-    <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> initGL(#{id_canvas_area})}/>                       
+    <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> initGL(#{id_canvas_area}, width, height)}/>                       
     <div id=#{id_work_area} />
   </div> ;
 

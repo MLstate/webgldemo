@@ -253,10 +253,10 @@ drawScene(eng, shaderProgram, squareVertexPositionBuffer, repcoords) =
   aux(eng, shaderProgram, squareVertexPositionBuffer, repcoords) 
 ;
 
-initGL(canvas_sel) : void =
+initGL(canvas_sel, width, height) : void =
   match Webgl.getContext(Dom.of_selection(canvas_sel), "experimental-webgl") with
   | { some=context } ->
-    eng = { ~context; canvas={ selector=canvas_sel; width=500; height=500 } };
+    eng = { ~context; canvas={ selector=canvas_sel; ~width; ~height } };
     gl = eng.context;
     squareVertexPositionBuffer = initBuffers(gl);
     repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
