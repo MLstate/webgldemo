@@ -278,7 +278,6 @@ initGL(canvas) : void =
   end ;
 
 server_start_static_page() =
-
   <div>
     <h1>Welcome to this demo</h1>
     <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> initGL(Dom.of_selection(#{id_canvas_area}))}/>                       
@@ -288,7 +287,6 @@ server_start_static_page() =
 urls =
   parser
   | (.*) ->
-    _ = %%WebglPlugin.getContext%% ;
     html("Demo page {Date.to_string(Date.now())}", server_start_static_page())
   end ;
 
