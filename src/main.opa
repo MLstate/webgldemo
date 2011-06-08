@@ -185,7 +185,6 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
   normalMatrix = mat3.create();
   do mat4.toInverseMat3(mvMatrix, normalMatrix);
   do mat3.transpose(normalMatrix, normalMatrix);
-  do Log.debug("normalMatrix", mat3.str(normalMatrix));
   do Webgl.uniformMatrix3fv(gl, shaderProgram.nMatrixUniform, false, Webgl.Float32Array.from_float_list(mat3.to_list(normalMatrix)));
   void
 ;
@@ -219,7 +218,6 @@ drawScene_for_a_viewport(gl, viewport, eye, up, shaderProgram, squareVertexPosit
     tmp_mvMatrix = mat4.create();
     do mat4.identity(tmp_mvMatrix);
     tmp_mvMatrix;
-  do Log.debug("mvMatrix", mat4.str(mvMatrix));
   do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4);
   do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
