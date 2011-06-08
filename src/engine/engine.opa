@@ -1,7 +1,26 @@
+@private type my_custom_shaderProgram = { 
+  program: Webgl.WebGLProgram;
+  vertexPositionAttribute: Webgl.GLint;
+  vertexNormalAttribute: Webgl.GLint;
+  pMatrixUniform: Webgl.WebGLUniformLocation;
+  mvMatrixUniform: Webgl.WebGLUniformLocation;
+  nMatrixUniform: Webgl.WebGLUniformLocation;
+  ambientColorUniform: Webgl.WebGLUniformLocation;
+  lightingDirectionUniform: Webgl.WebGLUniformLocation;
+  useLightingUniform: Webgl.WebGLUniformLocation 
+};
+
+@private type static_buffer = {
+  positions: Webgl.WebGLBuffer;
+  itemSize: int; numItems: int;
+  normals: Webgl.WebGLBuffer
+};
 
 @private type engine = {
   context: Webgl.Context.private;
-  canvas : { selector:dom; width: int; height: int }
+  canvas: { selector:dom; width: int; height: int };
+  shaderProgram: my_custom_shaderProgram
+  static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } }
 } ;
 
 initShaders(gl) = 
@@ -256,19 +275,21 @@ drawScene(eng, shaderProgram, squareVertexPositionBuffer, repcoords) =
 initGL(canvas_sel, width, height) : void =
   match Webgl.getContext(Dom.of_selection(canvas_sel), "experimental-webgl") with
   | { some=context } ->
-    eng = { ~context; canvas={ selector=canvas_sel; ~width; ~height } };
-    gl = eng.context;
+    gl = context;
+    eng : engine = 
+      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height } });
+      start = { start with shaderProgram=initShaders(gl) };
+      { start with static_buffers.repcoords=
+        { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
     squareVertexPositionBuffer = initBuffers(gl);
-    repcoords = { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) };
-    shaderProgram = initShaders(gl);
-    //Clear screen and make everything black
+    //Clear screen and make everything light gray
     do Webgl.clearColor(gl, 0.9, 0.9, 0.9, 1.0);
     //we should do depth testing so that things drawn behind other
     //things should be hidden by the things in front of them).
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene(eng, shaderProgram, squareVertexPositionBuffer, repcoords);
+    do drawScene(eng, eng.shaderProgram, squareVertexPositionBuffer, eng.static_buffers.repcoords);
     void
   | { none } -> error("no context found")
   end ;
