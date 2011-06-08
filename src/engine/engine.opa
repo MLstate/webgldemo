@@ -219,11 +219,10 @@ drawScene_for_a_viewport(eng, viewport, eye, up, squareVertexPositionBuffer) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = 
-    f = vec3.from_public ;
     tmp_pMatrix = mat4.create();
     do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
     c = mat4.create() ;
-    do mat4.lookAt(f(eye), f((0.0, 0.0, 0.0)), f(up), c);
+    do mat4.lookAt(vec3.from_public(eye), vec3.from_public((0.0, 0.0, 0.0)), vec3.from_public(up), c);
     do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
     tmp_pMatrix;
   mvMatrix = 
