@@ -56,113 +56,6 @@ initShaders(gl) =
   shaderProgram
 ;
 
-
-initBuffers(gl) =
-  //global variable to hold the square buffer
-  //We create a buffer for the square's vertex positions.
-  squareVertexPositionBuffer = Webgl.createBuffer(gl);
-  //tells WebGL that any following operations that act on buffers should use the one we specify
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), squareVertexPositionBuffer);
-  //define our vertex positions as a list
-  vertices = [
-      // Front face
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
-
-      // Back face
-      -1.0, -1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0, -1.0, -1.0,
-
-      // Top face
-      -1.0,  1.0, -1.0,
-      -1.0,  1.0,  1.0,
-       1.0,  1.0,  1.0,
-       1.0,  1.0, -1.0,
-
-      // Bottom face
-      -1.0, -1.0, -1.0,
-       1.0, -1.0, -1.0,
-       1.0, -1.0,  1.0,
-      -1.0, -1.0,  1.0,
-
-      // Right face
-       1.0, -1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0,  1.0,  1.0,
-       1.0, -1.0,  1.0,
-
-      // Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      -1.0,  1.0, -1.0,
-    ];
-  vertexNormals = [
-    // Front
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     0.0,  0.0,  1.0,
-     
-    // Back
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     0.0,  0.0, -1.0,
-     
-    // Top
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  1.0,  0.0,
-     
-    // Bottom
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     0.0, -1.0,  0.0,
-     
-    // Right
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     
-    // Left
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0,
-    -1.0,  0.0,  0.0
-  ];
-  cubeVertexIndices = [
-            0, 1, 2,      0, 2, 3,    // Front face
-            4, 5, 6,      4, 6, 7,    // Back face
-            8, 9, 10,     8, 10, 11,  // Top face
-            12, 13, 14,   12, 14, 15, // Bottom face
-            16, 17, 18,   16, 18, 19, // Right face
-            20, 21, 22,   20, 22, 23  // Left face
-        ];
-  //Now, we create a Float32Array object based on our list, 
-  //and tell WebGL to use it to fill the current buffer
-  do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), Webgl.STATIC_DRAW(gl));
-  //this 9-element buffer actually represents three separate vertex 
-  //positions (numItems), each of which is made up of three numbers (itemSize).
-  //do Webgl.set_itemSize(squareVertexPositionBuffer, 3);
-  //do Webgl.set_numItems(squareVertexPositionBuffer, 4);
-  squareVertexNormalBuffer = Webgl.createBuffer(gl);
-  //tells WebGL that any following operations that act on buffers should use the one we specify
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), squareVertexNormalBuffer);
-  do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertexNormals)), Webgl.STATIC_DRAW(gl));
-  cubeVertexIndexBuffer = Webgl.createBuffer(gl);
-  do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
-  do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
-  { positions=squareVertexPositionBuffer; itemSize=3; numItems=24; normals=squareVertexNormalBuffer; indexs=cubeVertexIndexBuffer }
-;
-
 initLineXBuffers(gl, orient) =
   (vertices, vertexNormals) = match orient with
     | {x} -> ([ 0.0, 0.0, 0.0, 5.0, 0.0, 0.0 ], [ 2.5, 0.0, 0.0,        2.5, -1.0, 0.0 ])
@@ -242,23 +135,7 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, squareVertexPositionBuff
   do draw_rep(1.0, 0.0, 0.0, repcoords.x);
   do draw_rep(0.0, 1.0, 0.0, repcoords.y);
   do draw_rep(0.0, 0.0, 1.0, repcoords.z);
-  /*
-  do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
-  do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4);
-  do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), squareVertexPositionBuffer.positions);
-  do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, Webgl.FLOAT(gl), false, 0, 0);
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), squareVertexPositionBuffer.normals);
-  do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, squareVertexPositionBuffer.itemSize, Webgl.FLOAT(gl), false, 0, 0);
-  do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), squareVertexPositionBuffer.indexs);
 
-  mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(scene), n))) ;
-  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
-  do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
-  mvMatrix = Stack.update_and_push(Stack.pop(mvMatrix), (o, n -> mat4.translate(o, vec3.from_public((2.0, 2.0, 0.0)), n)));
-  do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
-  do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
-  */
   do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object)), scene) ;
   void
 ;
@@ -288,7 +165,7 @@ initGL(canvas_sel, width, height) : void =
       start = { start with shaderProgram=initShaders(gl) };
       { start with static_buffers.repcoords=
         { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
-    squareVertexPositionBuffer = initBuffers(gl);
+    squareVertexPositionBuffer = void;
     //Clear screen and make everything light gray
     do Webgl.clearColor(gl, 0.9, 0.9, 0.9, 1.0);
     //we should do depth testing so that things drawn behind other
