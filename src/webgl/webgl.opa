@@ -2,6 +2,9 @@
 type Webgl.Context.private = external;
 
 type Webgl.WebGLBuffer = external;
+type Webgl.WebGLFramebuffer = external;
+type Webgl.WebGLRenderbuffer = external;
+type Webgl.WebGLTexture = external;
 type Webgl.GLenum = external;
 type Webgl.Float32Array = external;
 type Webgl.Uint16Array = external;
@@ -88,5 +91,26 @@ Webgl = {{
   uniformMatrix3fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, Webgl.Float32Array -> void = %% WebglPlugin.uniformMatrix3fv %% ;
   uniformMatrix4fv : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLboolean, Webgl.Float32Array -> void = %% WebglPlugin.uniformMatrix4fv %% ;
   uniform3f : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLfloat, Webgl.GLfloat, Webgl.GLfloat -> void = %% WebglPlugin.uniform3f %% ;
+
+
+  createRenderbuffer : Webgl.Context.private -> Webgl.WebGLRenderbuffer = %% WebglPlugin.createRenderbuffer %% ;
+  createTexture : Webgl.Context.private -> Webgl.WebGLTexture = %% WebglPlugin.createTexture %% ;
+  bindFramebuffer : Webgl.Context.private, Webgl.GLenum, option(Webgl.WebGLFramebuffer) -> void = %% WebglPlugin.bindFramebuffer %% ;
+  bindRenderbuffer : Webgl.Context.private, Webgl.GLenum, option(Webgl.WebGLRenderbuffer) -> void = %% WebglPlugin.bindRenderbuffer %% ;
+  bindTexture : Webgl.Context.private, Webgl.GLenum, Webgl.WebGLTexture -> void = %% WebglPlugin.bindTexture %% ;
+  texImage2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLint, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei, Webgl.GLint, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void = %% WebglPlugin.texImage2D %% ; // BUG: ArrayBufferView ?
+  renderbufferStorage : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei -> void = %% WebglPlugin.renderbufferStorage %% ;
+  framebufferRenderbuffer : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLenum, Webgl.WebGLRenderbuffer -> void = %% WebglPlugin.framebufferRenderbuffer %% ;
+  framebufferTexture2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLenum, Webgl.WebGLTexture, Webgl.GLint -> void = %% WebglPlugin.framebufferTexture2D %% ;
+
+  TEXTURE_2D : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.TEXTURE_2D %% ;
+  RGB : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.RGB %% ;
+  UNSIGNED_BYTE : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.UNSIGNED_BYTE %% ;
+  FRAMEBUFFER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.FRAMEBUFFER %% ;
+  RENDERBUFFER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.RENDERBUFFER %% ;
+  DEPTH_COMPONENT16 : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.DEPTH_COMPONENT16 %% ;
+  COLOR_ATTACHMENT0 : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.COLOR_ATTACHMENT0 %% ;
+  DEPTH_ATTACHMENT : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.DEPTH_ATTACHMENT %% ;
+
 
 }}

@@ -20,7 +20,8 @@
   context: Webgl.Context.private;
   canvas: { selector:dom; width: int; height: int };
   shaderProgram: my_custom_shaderProgram
-  static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } }
+  static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
+  framePickBuffer: void
 } ;
 
 initShaders(gl) = 

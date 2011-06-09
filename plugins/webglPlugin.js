@@ -23,6 +23,15 @@
 ##register createBuffer : Webgl.Context.private -> Webgl.WebGLBuffer
 ##args(gl)
 { return gl.createBuffer(); }
+
+##extern-type Webgl.WebGLFramebuffer
+
+##register createFramebuffer : Webgl.Context.private -> Webgl.WebGLFramebuffer
+##args(gl)
+{ return gl.createFramebuffer(); }
+
+
+
 ##register set_itemSize : Webgl.WebGLBuffer, int -> void
 ##args(buffer, x)
 { return buffer.itemSize = x; }
@@ -234,3 +243,63 @@
 ##register uniform3f : Webgl.Context.private, Webgl.WebGLUniformLocation, Webgl.GLfloat, Webgl.GLfloat, Webgl.GLfloat -> void
 ##args(gl, location, x, y, z)
 { gl.uniform3f(location, x, y, z); }
+
+
+##extern-type Webgl.WebGLRenderbuffer
+##extern-type Webgl.WebGLTexture
+
+##register createRenderbuffer : Webgl.Context.private -> Webgl.WebGLRenderbuffer
+##args(gl)
+{ return gl.createRenderbuffer(); }
+##register createTexture : Webgl.Context.private -> Webgl.WebGLTexture
+##args(gl)
+{ return gl.createTexture(); }
+##register bindFramebuffer : Webgl.Context.private, Webgl.GLenum, opa[ option(Webgl.WebGLFramebuffer) ] -> void
+##args(gl, target, framebuffer)
+{ gl.bindFramebuffer(target, option2js(framebuffer)); }
+##register bindRenderbuffer : Webgl.Context.private, Webgl.GLenum, opa[ option(Webgl.WebGLRenderbuffer) ] -> void
+##args(gl, target, renderbuffer)
+{ gl.bindRenderbuffer(target, option2js(renderbuffer)); }
+##register bindTexture : Webgl.Context.private, Webgl.GLenum, Webgl.WebGLTexture -> void
+##args(gl, target, texture)
+{ gl.bindTexture(target, texture); }
+##register texImage2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLint, Webgl.GLenum,\
+	   Webgl.GLsizei, Webgl.GLsizei, Webgl.GLint, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void 
+// BUG: ArrayBufferView ?
+##args(gl, target, level, internalformat, width, height, border, format, type, pixels)
+{ gl.texImage2D(target, level, internalformat, width, height, border, format, type, pixels); }
+##register renderbufferStorage : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei -> void
+##args(gl, target, internalformat, width, height)
+{ gl.renderbufferStorage(target, internalformat, width, height); }
+##register framebufferRenderbuffer : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLenum, Webgl.WebGLRenderbuffer -> void
+##args(gl, target, attachment, renderbuffertarget, renderbuffer)
+{ gl.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer); }
+##register framebufferTexture2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLenum, Webgl.WebGLTexture, Webgl.GLint -> void
+##args(gl, target, attachment, textarget, texture, level)
+{ gl.framebufferTexture2D(target, attachment, textarget, texture, level); }
+
+
+##register TEXTURE_2D : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.TEXTURE_2D; }
+##register RGB : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.RGB; }
+##register UNSIGNED_BYTE : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.UNSIGNED_BYTE; }
+##register FRAMEBUFFER : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.FRAMEBUFFER; }
+##register RENDERBUFFER : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.RENDERBUFFER; }
+##register DEPTH_COMPONENT16 : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.DEPTH_COMPONENT16; }
+##register COLOR_ATTACHMENT0 : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.COLOR_ATTACHMENT0; }
+##register DEPTH_ATTACHMENT : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.DEPTH_ATTACHMENT; }
