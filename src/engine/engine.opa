@@ -159,8 +159,18 @@ drawScene_and_register(eng, get_scene : (->list(vec3))) =
 initGL(canvas_sel, width, height) : void =
   match Webgl.getContext(Dom.of_selection(canvas_sel), "experimental-webgl") with
   | { some=context } ->
+    _ = 
+      handler(e) = 
+        m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
+          c_pos = Dom.get_offset(#{id_canvas_area});
+          rel = e.mouse_position_on_page;
+          { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
+        // now with gl the origin will be at the lower left corner
+        gl_pos = { x_px=min(max(m_pos.x_px,0), height-1); y_px=min(max(height - 1 - m_pos.y_px, 0), width-1) };
+        Log.debug("P", "[(,)-({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
+      Dom.bind(canvas_sel, { mousedown }, handler);
     gl = context;
-    eng : engine = 
+    eng : engine =
       start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height } });
       start = { start with shaderProgram=initShaders(gl) };
       { start with static_buffers.repcoords=
