@@ -242,7 +242,7 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, squareVertexPositionBuff
   do draw_rep(1.0, 0.0, 0.0, repcoords.x);
   do draw_rep(0.0, 1.0, 0.0, repcoords.y);
   do draw_rep(0.0, 0.0, 1.0, repcoords.z);
-
+  /*
   do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4);
   do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
@@ -258,7 +258,8 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, squareVertexPositionBuff
   mvMatrix = Stack.update_and_push(Stack.pop(mvMatrix), (o, n -> mat4.translate(o, vec3.from_public((2.0, 2.0, 0.0)), n)));
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
   do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
-
+  */
+  do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object)), scene) ;
   void
 ;
 
@@ -266,7 +267,7 @@ drawScene_and_register(eng, get_scene : (->vec3), squareVertexPositionBuffer) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng, squareVertexPositionBuffer) =
     gl = eng.context;
-    scene = get_scene() ;
+    scene = [ (get_scene(), Cube.create(gl)) ] ;
     do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
     do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, squareVertexPositionBuffer);
     do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, squareVertexPositionBuffer);
