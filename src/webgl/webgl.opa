@@ -8,6 +8,7 @@ type Webgl.WebGLTexture = external;
 type Webgl.GLenum = external;
 type Webgl.Float32Array = external;
 type Webgl.Uint16Array = external;
+type Webgl.Uint8Array = external;
 type Webgl.ArrayBuffer = external;
 type Webgl.DOMString = string;
 type Webgl.WebGLShader = external;
@@ -30,6 +31,10 @@ Webgl = {{
   Float32Array = {{
     from_float_list : list(float) -> Webgl.Float32Array = %% WebglPlugin.Float32Array_from_float_list %% ;
     to_ArrayBuffer : Webgl.Float32Array -> Webgl.ArrayBuffer = %% WebglPlugin.Float32Array_to_ArrayBuffer %% ;
+  }}
+  Uint8Array = {{
+    from_int_list : list(int) -> Webgl.Uint8Array = %% WebglPlugin.Uint8Array_from_int_list %% ;
+    to_ArrayBuffer : Webgl.Uint8Array -> Webgl.ArrayBuffer = %% WebglPlugin.Uint8Array_to_ArrayBuffer %% ;
   }}
 
   getContext : Dom.private.element, string -> option(Webgl.Context.private) = %% WebglPlugin.getContext %% ;
@@ -97,7 +102,7 @@ Webgl = {{
   createTexture : Webgl.Context.private -> Webgl.WebGLTexture = %% WebglPlugin.createTexture %% ;
   bindFramebuffer : Webgl.Context.private, Webgl.GLenum, option(Webgl.WebGLFramebuffer) -> void = %% WebglPlugin.bindFramebuffer %% ;
   bindRenderbuffer : Webgl.Context.private, Webgl.GLenum, option(Webgl.WebGLRenderbuffer) -> void = %% WebglPlugin.bindRenderbuffer %% ;
-  bindTexture : Webgl.Context.private, Webgl.GLenum, Webgl.WebGLTexture -> void = %% WebglPlugin.bindTexture %% ;
+  bindTexture : Webgl.Context.private, Webgl.GLenum, option(Webgl.WebGLTexture) -> void = %% WebglPlugin.bindTexture %% ;
   texImage2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLint, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei, Webgl.GLint, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void = %% WebglPlugin.texImage2D %% ; // BUG: ArrayBufferView ?
   renderbufferStorage : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei -> void = %% WebglPlugin.renderbufferStorage %% ;
   framebufferRenderbuffer : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLenum, Webgl.WebGLRenderbuffer -> void = %% WebglPlugin.framebufferRenderbuffer %% ;
@@ -112,5 +117,5 @@ Webgl = {{
   COLOR_ATTACHMENT0 : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.COLOR_ATTACHMENT0 %% ;
   DEPTH_ATTACHMENT : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.DEPTH_ATTACHMENT %% ;
 
-
+  createFramebuffer : Webgl.Context.private -> Webgl.WebGLFramebuffer = %% WebglPlugin.createFramebuffer %% ;
 }}

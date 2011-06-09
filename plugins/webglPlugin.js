@@ -101,6 +101,15 @@
 ##args(a)
 { return a; }
 
+##extern-type Webgl.Uint8Array
+
+##register Uint8Array_from_int_list : opa[ list(int) ] -> Webgl.Uint8Array
+##args(l)
+{ return new Uint8Array(list2js(l)); }
+##register Uint8Array_to_ArrayBuffer : Webgl.Uint8Array -> Webgl.ArrayBuffer
+##args(a)
+{ return a; }
+
 
 ##register bufferData : Webgl.Context.private, Webgl.GLenum, Webgl.ArrayBuffer, Webgl.GLenum -> void
 ##args(gl, target, data, usage)
@@ -260,14 +269,14 @@
 ##register bindRenderbuffer : Webgl.Context.private, Webgl.GLenum, opa[ option(Webgl.WebGLRenderbuffer) ] -> void
 ##args(gl, target, renderbuffer)
 { gl.bindRenderbuffer(target, option2js(renderbuffer)); }
-##register bindTexture : Webgl.Context.private, Webgl.GLenum, Webgl.WebGLTexture -> void
+##register bindTexture : Webgl.Context.private, Webgl.GLenum, opa[ option(Webgl.WebGLTexture) ] -> void
 ##args(gl, target, texture)
-{ gl.bindTexture(target, texture); }
+{ gl.bindTexture(target, option2js(texture)); }
 ##register texImage2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLint, Webgl.GLenum,\
 	   Webgl.GLsizei, Webgl.GLsizei, Webgl.GLint, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void 
 // BUG: ArrayBufferView ?
 ##args(gl, target, level, internalformat, width, height, border, format, type, pixels)
-{ gl.texImage2D(target, level, internalformat, width, height, border, format, type, pixels); }
+{ gl.texImage2D(target, level, internalformat, width, height, border, format, type, null); }
 ##register renderbufferStorage : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei -> void
 ##args(gl, target, internalformat, width, height)
 { gl.renderbufferStorage(target, internalformat, width, height); }

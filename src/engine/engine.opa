@@ -21,8 +21,27 @@
   canvas: { selector:dom; width: int; height: int };
   shaderProgram: my_custom_shaderProgram
   static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
-  framePickBuffer: void
+  framePickBuffer: Webgl.WebGLFramebuffer
 } ;
+
+initPickBuffer(eng) = 
+  gl = eng.context;
+  framePickBuffer = Webgl.createFramebuffer(gl);
+  renderPickBuffer = Webgl.createRenderbuffer(gl);
+  pickTexture = Webgl.createTexture(gl);
+  do Webgl.bindTexture(gl, Webgl.TEXTURE_2D(gl), Option.some(pickTexture));
+  tex = Webgl.Uint8Array.from_int_list([0, 0, 0]);
+  do Webgl.texImage2D(gl, Webgl.TEXTURE_2D(gl), 0, Webgl.RGB(gl), eng.canvas.width, eng.canvas.height, 0, Webgl.RGB(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(tex));
+  do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(framePickBuffer));
+  do Webgl.bindRenderbuffer(gl, Webgl.RENDERBUFFER(gl), Option.some(renderPickBuffer));
+  do Webgl.renderbufferStorage(gl, Webgl.RENDERBUFFER(gl), Webgl.DEPTH_COMPONENT16(gl), eng.canvas.width, eng.canvas.height);
+  do Webgl.bindRenderbuffer(gl, Webgl.RENDERBUFFER(gl), Option.none);
+  do Webgl.framebufferTexture2D(gl, Webgl.FRAMEBUFFER(gl), Webgl.COLOR_ATTACHMENT0(gl), Webgl.TEXTURE_2D(gl), pickTexture, 0);
+  do Webgl.framebufferRenderbuffer(gl, Webgl.FRAMEBUFFER(gl), Webgl.DEPTH_ATTACHMENT(gl), Webgl.RENDERBUFFER(gl), renderPickBuffer);
+  do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
+  do Webgl.bindTexture(gl, Webgl.TEXTURE_2D(gl), Option.none);
+  framePickBuffer
+;
 
 initShaders(gl) = 
   f(e, str) = 
@@ -174,6 +193,7 @@ initGL(canvas_sel, width, height) : void =
     eng : engine =
       start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height } });
       start = { start with shaderProgram=initShaders(gl) };
+      start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
         { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
     //Clear screen and make everything light gray
