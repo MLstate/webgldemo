@@ -7,9 +7,10 @@ type object = {
   indexs: Webgl.WebGLBuffer
 }
 
-display(eng, pMatrix, mvMatrix, position, object) =
+display(eng, pMatrix, mvMatrix, position, object, overide_color) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
-  do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4);
+  color = overide_color ? (0.4, 0.4, 0.4);
+  do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, color.f1, color.f2, color.f3);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.normals);

@@ -9,6 +9,8 @@ default_css = css
 
 css = [ default_css ] ;
 
+_ = Random.random_init();
+
 server_start_static_page() =
   width = 500;
   height = 500;

@@ -128,7 +128,14 @@ setup_boxes(eng) =
     _ZX=g(0, 0, w_l, h_d); _3D=g(w_l+sep_largeur, 0, w_r, h_d) }
 ;
 
-drawScene_for_a_viewport(eng, viewport, eye, up, scene) =
+pc =
+  c() = 
+    r() = Random.float(1.0);
+    (r(), r(), r())
+  List.fold((e, acc -> IntMap.add(e, c(), acc)), List.init(identity, 10), IntMap.empty)
+;
+
+drawScene_for_a_viewport(eng, viewport, eye, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix =
@@ -152,13 +159,25 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene) =
     do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, rep.itemSize, Webgl.FLOAT(gl), false, 0, 0);
     do Webgl.drawArrays(gl, Webgl.LINES(gl), 0, rep.numItems);
     void ;
-  do draw_rep(1.0, 0.0, 0.0, repcoords.x);
-  do draw_rep(0.0, 1.0, 0.0, repcoords.y);
-  do draw_rep(0.0, 0.0, 1.0, repcoords.z);
 
-  do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
-  do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
-  do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object)), scene) ;
+  _ = 
+    match mode with
+    | {normal} -> 
+      do draw_rep(1.0, 0.0, 0.0, repcoords.x);
+      do draw_rep(0.0, 1.0, 0.0, repcoords.y);
+      do draw_rep(0.0, 0.0, 1.0, repcoords.z);
+
+      do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
+      do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
+      List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, Option.none)), scene)
+    | {pick} ->
+      do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
+      do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
+      c(i) = IntMap.get(i, pc) ? (0.0, 0.0, 0.0);
+      do List.iteri((i, (pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, Option.some(c(i)))), scene);
+      Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none)
+    end ;
+
   void
 ;
 
@@ -167,11 +186,15 @@ drawScene_and_register(eng, get_scene : (->list(vec3))) =
   rec aux(eng) =
     gl = eng.context;
     scene = List.map((p -> (p, Cube.create(gl))), get_scene());
+    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
+    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
+    do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
     do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene);
-    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene);
-    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene);
-    do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene);
+    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
+    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
+    do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
     do RequestAnimationFrame.request((_ -> aux(eng)), #{id_canvas_area});
     void
     ;
