@@ -263,11 +263,11 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, squareVertexPositionBuff
   void
 ;
 
-drawScene_and_register(eng, get_scene : (->vec3), squareVertexPositionBuffer) =
+drawScene_and_register(eng, get_scene : (->list(vec3)), squareVertexPositionBuffer) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng, squareVertexPositionBuffer) =
     gl = eng.context;
-    scene = [ (get_scene(), Cube.create(gl)) ] ;
+    scene = List.map((p -> (p, Cube.create(gl))), get_scene());
     do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
     do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, squareVertexPositionBuffer);
     do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, squareVertexPositionBuffer);
@@ -296,7 +296,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene_and_register(eng, (-> (0.0, -4.0, 0.0)), squareVertexPositionBuffer);
+    do drawScene_and_register(eng, (-> [ (0.0, 0.0, 0.0), (3.0, 0.0, 0.0), (6.0, 0.0, 0.0) ]), squareVertexPositionBuffer);
     void
   | { none } -> error("no context found")
   end ;
