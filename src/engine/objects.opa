@@ -9,9 +9,7 @@ type object = {
 
 display(eng, pMatrix, mvMatrix, position, object) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
-  do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4);
-  do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.normals);

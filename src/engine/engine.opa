@@ -156,6 +156,8 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene) =
   do draw_rep(0.0, 1.0, 0.0, repcoords.y);
   do draw_rep(0.0, 0.0, 1.0, repcoords.z);
 
+  do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
+  do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
   do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object)), scene) ;
   void
 ;
