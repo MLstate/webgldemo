@@ -9,6 +9,31 @@
 ##args(ovec)
 { return [ ovec.f1, ovec.f2, ovec.f3 ]; }
 
+##register vec3_private_to_public : vec3.private -> vec3
+##args(vec)
+{ return { f1: vec[0], f2: vec[1] , f3: vec[2] }; }
+
+##register vec3_str : vec3.private -> string
+##args(vec)
+{ return vec3.str(vec); }
+
+/* ---- vec4 ---- */
+
+##extern-type vec4.private
+##opa-type vec4
+
+##register vec4_private_from_public : vec4 -> vec4.private
+##args(ovec)
+{ return [ ovec.f1, ovec.f2, ovec.f3, ovec.f4 ]; }
+
+##register vec4_private_to_public : vec4.private -> vec4
+##args(vec)
+{ return { f1: vec[0], f2: vec[1] , f3: vec[2], f4: vec[3] }; }
+
+##register vec4_str : vec4.private -> string
+##args(vec)
+{ return '[' + vec[0] + ', ' + vec[1] + ', ' + vec[2] + ', ' + vec[3] + ']'; }
+
 
 /* ---- mat3 ---- */
 
@@ -70,3 +95,19 @@
 ##register mat4_toInverseMat3 : mat4, mat3 -> void
 ##args(mat, dest)
 { mat4.toInverseMat3(mat, dest); }
+
+##register mat4_inverse : mat4, mat4 -> void
+##args(mat, dest)
+{ return mat4.inverse(mat, dest); }
+
+##register mat4_multiplyVec3 : mat4, vec3.private, vec3.private -> void
+##args(mat, vec, dest)
+{ return mat4.multiplyVec3(mat, vec, dest); }
+
+##register mat4_copy : mat4 -> mat4
+##args(mat)
+{ return mat4.create(mat); }
+
+##register mat4_multiplyVec4 : mat4, vec4.private, vec4.private -> void
+##args(mat, vec, dest)
+{ return mat4.multiplyVec4(mat, vec, dest); }

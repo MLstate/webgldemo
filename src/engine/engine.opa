@@ -181,7 +181,7 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, mode) =
       void
     end ;
 
-  void
+  (pMatrix, mvMatrix)
 ;
 
 drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
@@ -191,27 +191,39 @@ drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
     scene = List.map((p -> (p, Cube.create(gl))), get_scene());
     do match get_mode() with
     | {pick=pos; ~close} ->
-      do Log.debug("Picking", "...");
-      do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-      do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
-      do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
-      do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      //do Log.debug("Picking", "...");
+      _ = drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      _ = drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
+      (pMatrix, s) = drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
+      //(pMatrix, s) = drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      x = (float_of_int(pos.x_px - viewbox._ZX.x) / float_of_int(viewbox._ZX.w)) * 2.0 - 1.0;
+      y = (float_of_int(pos.y_px - viewbox._ZX.y) / float_of_int(viewbox._ZX.h)) * 2.0 - 1.0;
+      mvMatrix = Stack.peek(s) ;
+      do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
+      do mat4.inverse(mvMatrix, mvMatrix);
+      v1 = vec4.from_public((x, y, 1.0, 1.0));
+      v2 = vec4.from_public((9.9, 9.9, 9.9, 9.9));
+      do mat4.multiplyVec4(mvMatrix, v1, v2);
+      v22 = vec4.to_public(v2);
+      v22 = { v22 with f2=0.0 };
+      v2 = vec4.from_public((v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4));
       data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
       do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
       pickedColor = match Webgl.Uint8Array.to_int_list(data) with
         | [r, g, b, _] -> (r, g, b)
         | _ -> error("Picking failure")
         end ;
-      do Log.debug("Picking", "Color is: { pickedColor }");
-      do jlog("Color is: { pickedColor }");
+      do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ vec4.str(v2) }");
+      //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
       close()
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-      do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
-      do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
-      do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
-      drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal})
+      _ = drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+      void
     end ;
     do RequestAnimationFrame.request((_ -> aux(eng)), #{id_canvas_area});
     void
