@@ -152,7 +152,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
     | {_ZX} ->
       do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
       mat4.rotateX(tmp_pMatrix, -(90. * Math.PI / 180.), tmp_pMatrix)
-    | _ ->
+    | {_3D} ->
       do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
       c = mat4.create() ;
       do mat4.lookAt(vec3.from_public(eye), vec3.from_public((0.0, 0.0, 0.0)), vec3.from_public(up), c);
@@ -273,7 +273,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene_and_register(eng, (-> [ (0.0, 0.0, 0.0), (3.0, 0.0, 0.0), (6.0, 0.0, 0.0) ]), mode.get);
+    do drawScene_and_register(eng, (-> [ (0.0, 0.0, -3.0), (3.0, 0.0, 0.0), (6.0, 0.0, 0.0) ]), mode.get);
     void
   | { none } -> error("no context found")
   end ;
