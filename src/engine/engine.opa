@@ -24,6 +24,9 @@
   framePickBuffer: Webgl.WebGLFramebuffer
 } ;
 
+type engine.objects = { cube: (float, float, float) } ;
+
+type engine.scene = list(engine.objects) ;
 
 @client initPickBuffer(eng) = 
   gl = eng.context;
@@ -183,20 +186,20 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
 
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
       do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
-      List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, Option.none)), scene)
+      List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, Option.none)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
       c(i) = IntMap.get(i, pc) ? (0.1, 0.2, 0.3);
-      do List.iteri((i, (pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, Option.some(c(i)))), scene);
+      do List.iteri((i, (pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, Option.some(c(i)))), scene);
       void
     end ;
 
   (pMatrix, mvMatrix)
 ;
 
-drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
+drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;
@@ -273,7 +276,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene_and_register(eng, (-> [ (0.0, 0.0, -3.0), (3.0, 0.0, 0.0), (6.0, 0.0, 0.0) ]), mode.get);
+    do drawScene_and_register(eng, (-> [ {cube=(0.0, 0.0, -3.0)}, {cube=(3.0, 0.0, 0.0)}, {cube=(6.0, 0.0, 0.0)} ]), mode.get);
     void
   | { none } -> error("no context found")
   end ;
