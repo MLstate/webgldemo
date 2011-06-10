@@ -77,6 +77,15 @@
 ##register ELEMENT_ARRAY_BUFFER : Webgl.Context.private -> Webgl.GLenum
 ##args(gl)
 { return gl.ELEMENT_ARRAY_BUFFER; }
+##register TEXTURE_MAG_FILTER : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.TEXTURE_MAG_FILTER; }
+##register TEXTURE_MIN_FILTER : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.TEXTURE_MIN_FILTER; }
+##register LINEAR : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.LINEAR; }
 
 ##register bindBuffer : Webgl.Context.private, Webgl.GLenum, Webgl.WebGLBuffer -> void
 ##args(gl, target, buff)
@@ -109,6 +118,9 @@
 ##register Uint8Array_to_ArrayBuffer : Webgl.Uint8Array -> Webgl.ArrayBuffer
 ##args(a)
 { return a; }
+##register Uint8Array_to_int_list : Webgl.Uint8Array -> opa[ list(int) ]
+##args(a)
+{ return js2list(a); }
 
 
 ##register bufferData : Webgl.Context.private, Webgl.GLenum, Webgl.ArrayBuffer, Webgl.GLenum -> void
@@ -275,6 +287,7 @@
 ##register texImage2D : Webgl.Context.private, Webgl.GLenum, Webgl.GLint, Webgl.GLenum,\
 	   Webgl.GLsizei, Webgl.GLsizei, Webgl.GLint, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void 
 // BUG: ArrayBufferView ?
+// TODO: pixel en option
 ##args(gl, target, level, internalformat, width, height, border, format, type, pixels)
 { gl.texImage2D(target, level, internalformat, width, height, border, format, type, null); }
 ##register renderbufferStorage : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLsizei, Webgl.GLsizei -> void
@@ -294,6 +307,9 @@
 ##register RGB : Webgl.Context.private -> Webgl.GLenum
 ##args(gl)
 { return gl.RGB; }
+##register RGBA : Webgl.Context.private -> Webgl.GLenum
+##args(gl)
+{ return gl.RGBA; }
 ##register UNSIGNED_BYTE : Webgl.Context.private -> Webgl.GLenum
 ##args(gl)
 { return gl.UNSIGNED_BYTE; }
@@ -312,3 +328,19 @@
 ##register DEPTH_ATTACHMENT : Webgl.Context.private -> Webgl.GLenum
 ##args(gl)
 { return gl.DEPTH_ATTACHMENT; }
+
+##register readPixels : Webgl.Context.private, Webgl.GLint, Webgl.GLint, Webgl.GLsizei, Webgl.GLsizei, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void
+##args(gl, x, y, width, height, format, type, pixels)
+{ gl.readPixels(x, y, width, height, format, type, pixels); }
+
+
+##register texParameterf : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLfloat -> void
+##args(gl, target, pname, param)
+{ gl.texParameteri(target, pname, param); }
+##register texParameteri : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLint -> void
+##args(gl, target, pname, param)
+{ gl.texParameteri(target, pname, param); }
+
+##register GLenum_to_GLint : Webgl.Context.private, Webgl.GLenum -> Webgl.GLint
+##args(gl, e)
+{ return e; }

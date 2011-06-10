@@ -35,6 +35,7 @@ Webgl = {{
   Uint8Array = {{
     from_int_list : list(int) -> Webgl.Uint8Array = %% WebglPlugin.Uint8Array_from_int_list %% ;
     to_ArrayBuffer : Webgl.Uint8Array -> Webgl.ArrayBuffer = %% WebglPlugin.Uint8Array_to_ArrayBuffer %% ;
+    to_int_list : Webgl.Uint8Array -> list(int) = (a -> List.rev(%% WebglPlugin.Uint8Array_to_int_list %%(a)));
   }}
 
   getContext : Dom.private.element, string -> option(Webgl.Context.private) = %% WebglPlugin.getContext %% ;
@@ -55,6 +56,9 @@ Webgl = {{
   TRIANGLES : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.TRIANGLES %% ;
   TRIANGLE_STRIP : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.TRIANGLE_STRIP %% ;
   ELEMENT_ARRAY_BUFFER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.ELEMENT_ARRAY_BUFFER %% ;
+  TEXTURE_MAG_FILTER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.TEXTURE_MAG_FILTER %% ;
+  TEXTURE_MIN_FILTER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.TEXTURE_MIN_FILTER %% ;
+  LINEAR : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.LINEAR %% ;
 
   bindBuffer : Webgl.Context.private, Webgl.GLenum, Webgl.WebGLBuffer -> void = %% WebglPlugin.bindBuffer %% ;
 
@@ -110,6 +114,7 @@ Webgl = {{
 
   TEXTURE_2D : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.TEXTURE_2D %% ;
   RGB : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.RGB %% ;
+  RGBA : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.RGBA %% ;
   UNSIGNED_BYTE : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.UNSIGNED_BYTE %% ;
   FRAMEBUFFER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.FRAMEBUFFER %% ;
   RENDERBUFFER : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.RENDERBUFFER %% ;
@@ -118,4 +123,13 @@ Webgl = {{
   DEPTH_ATTACHMENT : Webgl.Context.private -> Webgl.GLenum = %% WebglPlugin.DEPTH_ATTACHMENT %% ;
 
   createFramebuffer : Webgl.Context.private -> Webgl.WebGLFramebuffer = %% WebglPlugin.createFramebuffer %% ;
+
+  readPixels : Webgl.Context.private, Webgl.GLint, Webgl.GLint, Webgl.GLsizei, Webgl.GLsizei, Webgl.GLenum, Webgl.GLenum, Webgl.ArrayBuffer -> void = %% WebglPlugin.readPixels %% ;
+
+
+  texParameterf : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLfloat -> void = %% WebglPlugin.texParameterf %% ;
+  texParameteri : Webgl.Context.private, Webgl.GLenum, Webgl.GLenum, Webgl.GLint -> void = %% WebglPlugin.texParameteri %% ;
+
+  GLenum_to_GLint : Webgl.Context.private, Webgl.GLenum -> Webgl.GLint = %% WebglPlugin.GLenum_to_GLint %% ;
+
 }}

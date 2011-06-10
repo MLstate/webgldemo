@@ -24,7 +24,11 @@
   framePickBuffer: Webgl.WebGLFramebuffer
 } ;
 
-initPickBuffer(eng) = 
+//@client pluto = Mutable.make_client(Option.none:option(Webgl.WebGLRenderbuffer));
+@client pluti = Mutable.make_client(Option.none:option(Webgl.WebGLTexture));
+//client pluto = Mutable.make_client(Option.some(Magic.id(42) : Webgl.WebGLRenderbuffer));
+
+@client initPickBuffer(eng) = 
   gl = eng.context;
   framePickBuffer = Webgl.createFramebuffer(gl);
   renderPickBuffer = Webgl.createRenderbuffer(gl);
@@ -32,13 +36,18 @@ initPickBuffer(eng) =
   do Webgl.bindTexture(gl, Webgl.TEXTURE_2D(gl), Option.some(pickTexture));
   tex = Webgl.Uint8Array.from_int_list([0, 0, 0]);
   do Webgl.texImage2D(gl, Webgl.TEXTURE_2D(gl), 0, Webgl.RGB(gl), eng.canvas.width, eng.canvas.height, 0, Webgl.RGB(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(tex));
+  //do Webgl.texParameteri(gl, Webgl.TEXTURE_2D(gl), Webgl.TEXTURE_MAG_FILTER(gl), Webgl.GLenum_to_GLint(gl, Webgl.LINEAR(gl)));
+  //do Webgl.texParameteri(gl, Webgl.TEXTURE_2D(gl), Webgl.TEXTURE_MIN_FILTER(gl), Webgl.GLenum_to_GLint(gl, Webgl.LINEAR(gl)));
   do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(framePickBuffer));
   do Webgl.bindRenderbuffer(gl, Webgl.RENDERBUFFER(gl), Option.some(renderPickBuffer));
   do Webgl.renderbufferStorage(gl, Webgl.RENDERBUFFER(gl), Webgl.DEPTH_COMPONENT16(gl), eng.canvas.width, eng.canvas.height);
   do Webgl.bindRenderbuffer(gl, Webgl.RENDERBUFFER(gl), Option.none);
+
   do Webgl.framebufferTexture2D(gl, Webgl.FRAMEBUFFER(gl), Webgl.COLOR_ATTACHMENT0(gl), Webgl.TEXTURE_2D(gl), pickTexture, 0);
-  do Webgl.framebufferRenderbuffer(gl, Webgl.FRAMEBUFFER(gl), Webgl.DEPTH_ATTACHMENT(gl), Webgl.RENDERBUFFER(gl), renderPickBuffer);
+  do Webgl.framebufferRenderbuffer(gl, Webgl.FRAMEBUFFER(gl), Webgl.DEPTH_ATTACHMENT(gl), Webgl.RENDERBUFFER(gl), renderPickBuffer);  
   do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
+  //do pluto.set(Option.some(renderPickBuffer));
+  do pluti.set(Option.some(pickTexture));
   do Webgl.bindTexture(gl, Webgl.TEXTURE_2D(gl), Option.none);
   framePickBuffer
 ;
@@ -172,29 +181,49 @@ drawScene_for_a_viewport(eng, viewport, eye, up, scene, mode) =
       List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, Option.none)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
+      //do Webgl.bindTexture(gl, Webgl.TEXTURE_2D(gl), pluti.get());
+      do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
+      //do Webgl.bindRenderbuffer(gl, Webgl.RENDERBUFFER(gl), pluto.get());
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      c(i) = IntMap.get(i, pc) ? (0.0, 0.0, 0.0);
+      c(i) = IntMap.get(i, pc) ? (0.1, 0.2, 0.3);
       do List.iteri((i, (pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, Option.some(c(i)))), scene);
-      Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none)
+      //Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none)
+      void
     end ;
 
   void
 ;
 
-drawScene_and_register(eng, get_scene : (->list(vec3))) =
+drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;
     scene = List.map((p -> (p, Cube.create(gl))), get_scene());
-    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
-    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
-    do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-    do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-    do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
-    do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
-    do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
-    do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+    do match get_mode() with
+    | {pick=pos; ~close} ->
+      //do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
+      do Log.debug("Picking", "...");
+      do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
+      do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
+      do drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
+      do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
+      pickedColor = match Webgl.Uint8Array.to_int_list(data) with
+        | [r, g, b, _] -> (r, g, b)
+        | _ -> error("Picking failure")
+        end ;
+      do Log.debug("Picking", "Color is: { pickedColor }");
+      do jlog("Color is: { pickedColor }");
+      do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
+      close()
+    | {normal} ->
+      do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
+      do drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+      do drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
+      do drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
+      drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal})
+    end ;
     do RequestAnimationFrame.request((_ -> aux(eng)), #{id_canvas_area});
     void
     ;
@@ -204,6 +233,8 @@ drawScene_and_register(eng, get_scene : (->list(vec3))) =
 initGL(canvas_sel, width, height) : void =
   match Webgl.getContext(Dom.of_selection(canvas_sel), "experimental-webgl") with
   | { some=context } ->
+    mode = Mutable.make_client({normal});
+    is_picking(m) = match m with | { pick=_; close=_ } -> true | _ -> false end;
     _ = 
       handler(e) = 
         m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
@@ -212,6 +243,7 @@ initGL(canvas_sel, width, height) : void =
           { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
         // now with gl the origin will be at the lower left corner
         gl_pos = { x_px=min(max(m_pos.x_px,0), height-1); y_px=min(max(height - 1 - m_pos.y_px, 0), width-1) };
+        do if not(is_picking(mode.get())) then mode.set({pick=gl_pos; close=(->mode.set({normal}))});
         Log.debug("P", "[(,)-({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
       Dom.bind(canvas_sel, { mousedown }, handler);
     gl = context;
@@ -228,7 +260,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene_and_register(eng, (-> [ (0.0, 0.0, 0.0), (3.0, 0.0, 0.0), (6.0, 0.0, 0.0) ]));
+    do drawScene_and_register(eng, (-> [ (0.0, 0.0, 0.0), (3.0, 0.0, 0.0), (6.0, 0.0, 0.0) ]), mode.get);
     void
   | { none } -> error("no context found")
   end ;
