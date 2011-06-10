@@ -151,7 +151,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
       mat4.rotateY(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
     | {_ZX} ->
       do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
-      mat4.rotateX(tmp_pMatrix, -(90. * Math.PI / 180.), tmp_pMatrix)
+      mat4.rotateX(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
     | {_3D} ->
       do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
       c = mat4.create() ;
