@@ -209,7 +209,7 @@ drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
     gl = eng.context;
     scene = List.map((p -> (p, do register_color(p.id); Cube.create(gl))), get_scene());
     do match get_mode() with
-    | {pick=pos; ~close} ->
+    | {pick=pos; ~cont} ->
       //do Log.debug("Picking", "...");
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
       _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
@@ -225,17 +225,17 @@ drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
       do mat4.multiplyVec4(mvMatrix, v1, v2);
       v22 = vec4.to_public(v2);
       //v22 = { v22 with f2=0.0 };
-      v2 = vec4.from_public((v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4));
+      v2 = (v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4);
       data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
       do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
       pickedColor = match Webgl.Uint8Array.to_int_list(data) with
         | [r, g, b, _] -> (r, g, b)
         | _ -> error("Picking failure")
         end ;
-      do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ vec4.str(v2) }");
+      do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ v2 }");
       //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-      close()
+      cont({ mousedown; x=v2.f1; z=v2.f3})
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
@@ -250,11 +250,11 @@ drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
   aux(eng) 
 ;
 
-initGL(canvas_sel, width, height) : void =
+initGL(canvas_sel, width, height, get_scene, mouse_listener) : void =
   match Webgl.getContext(Dom.of_selection(canvas_sel), "experimental-webgl") with
   | { some=context } ->
     mode = Mutable.make_client({normal});
-    is_picking(m) = match m with | { pick=_; close=_ } -> true | _ -> false end;
+    is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
     _ = 
       handler(e) = 
         m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
@@ -263,7 +263,10 @@ initGL(canvas_sel, width, height) : void =
           { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
         // now with gl the origin will be at the lower left corner
         gl_pos = { x_px=min(max(m_pos.x_px,0), height-1); y_px=min(max(height - 1 - m_pos.y_px, 0), width-1) };
-        do if not(is_picking(mode.get())) then mode.set({pick=gl_pos; close=(->mode.set({normal}))});
+        cont(e) =
+          do mode.set({normal});
+          mouse_listener(e);
+        do if not(is_picking(mode.get())) then mode.set({pick=gl_pos; ~cont});
         Log.debug("P", "[(,)-({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
       Dom.bind(canvas_sel, { mousedown }, handler);
     gl = context;
@@ -280,8 +283,7 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    org_scene = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ];
-    do drawScene_and_register(eng, (-> org_scene), mode.get);
+    do drawScene_and_register(eng, get_scene, mode.get);
     void
   | { none } -> error("no context found")
   end ;
