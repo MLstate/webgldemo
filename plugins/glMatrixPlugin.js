@@ -111,3 +111,21 @@
 ##register mat4_multiplyVec4 : mat4, vec4.private, vec4.private -> void
 ##args(mat, vec, dest)
 { return mat4.multiplyVec4(mat, vec, dest); }
+
+##register mat4_frustum : float, float, float, float, float, float, mat4 -> void
+##args(left, right, bottom, top, near, far, dest)
+{ mat4.frustum(left, right, bottom, top, near, far, dest); }
+
+##register mat4_ortho : float, float, float, float, float, float, mat4 -> void
+##args(left, right, bottom, top, near, far, dest)
+{ mat4.ortho(left, right, bottom, top, near, far, dest); }
+
+##register mat4_rotateX : mat4, float, mat4 -> mat4
+##args(mat, angle, dest)
+{ return mat4.rotateX(mat, angle, dest); }
+##register mat4_rotateY : mat4, float, mat4 -> mat4
+##args(mat, angle, dest)
+{ return mat4.rotateY(mat, angle, dest); }
+##register mat4_rotateZ : mat4, float, mat4 -> mat4
+##args(mat, angle, dest)
+{ return mat4.rotateZ(mat, angle, dest); }

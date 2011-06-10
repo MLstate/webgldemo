@@ -41,4 +41,10 @@ mat4 = {{
      multiplyVec3 : mat4, vec3.private, vec3.private -> void = %% glMatrixPlugin.mat4_multiplyVec3 %% ;
      copy : mat4 -> mat4 = %% glMatrixPlugin.mat4_copy %% ;
      multiplyVec4 : mat4, vec4.private, vec4.private -> void = %% glMatrixPlugin.mat4_multiplyVec4 %% ;
+     frustum : float, float, float, float, float, float, mat4 -> void = %% glMatrixPlugin.mat4_frustum %% ;
+     ortho : float, float, float, float, float, float, mat4 -> void = %% glMatrixPlugin.mat4_ortho %% ;
+
+     rotateX : mat4, float, mat4 -> mat4 = %% glMatrixPlugin.mat4_rotateX %% ;
+     rotateY : mat4, float, mat4 -> mat4 = %% glMatrixPlugin.mat4_rotateY %% ;
+     rotateZ : mat4, float, mat4 -> mat4 = %% glMatrixPlugin.mat4_rotateZ %% ;
 }}

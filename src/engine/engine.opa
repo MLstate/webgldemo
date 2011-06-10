@@ -137,16 +137,28 @@ pc =
   List.fold((e, acc -> IntMap.add(e, c(), acc)), List.init(identity, 10), IntMap.empty)
 ;
 
-drawScene_for_a_viewport(eng, viewport, eye, up, scene, mode) =
+drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix =
     tmp_pMatrix = mat4.create();
-    do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
-    c = mat4.create() ;
-    do mat4.lookAt(vec3.from_public(eye), vec3.from_public((0.0, 0.0, 0.0)), vec3.from_public(up), c);
-    do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
-    tmp_pMatrix;
+    match who with
+    | {_YX} ->
+      do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
+      tmp_pMatrix
+    | {_YZ} ->
+      do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
+      mat4.rotateY(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
+    | {_ZX} ->
+      do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
+      mat4.rotateX(tmp_pMatrix, -(90. * Math.PI / 180.), tmp_pMatrix)
+    | _ ->
+      do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
+      c = mat4.create() ;
+      do mat4.lookAt(vec3.from_public(eye), vec3.from_public((0.0, 0.0, 0.0)), vec3.from_public(up), c);
+      do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
+      tmp_pMatrix
+    end ;
   mvMatrix = 
     tmp_mvMatrix = mat4.create();
     do mat4.identity(tmp_mvMatrix);
@@ -192,10 +204,10 @@ drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
     do match get_mode() with
     | {pick=pos; ~close} ->
       //do Log.debug("Picking", "...");
-      _ = drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-      _ = drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
-      (pMatrix, s) = drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
-      //(pMatrix, s) = drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
+      (pMatrix, s) = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
+      //(pMatrix, s) = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
       x = (float_of_int(pos.x_px - viewbox._ZX.x) / float_of_int(viewbox._ZX.w)) * 2.0 - 1.0;
       y = (float_of_int(pos.y_px - viewbox._ZX.y) / float_of_int(viewbox._ZX.h)) * 2.0 - 1.0;
       mvMatrix = Stack.peek(s) ;
@@ -205,7 +217,7 @@ drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
       v2 = vec4.from_public((9.9, 9.9, 9.9, 9.9));
       do mat4.multiplyVec4(mvMatrix, v1, v2);
       v22 = vec4.to_public(v2);
-      v22 = { v22 with f2=0.0 };
+      //v22 = { v22 with f2=0.0 };
       v2 = vec4.from_public((v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4));
       data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
       do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
@@ -219,10 +231,10 @@ drawScene_and_register(eng, get_scene : (->list(vec3)), get_mode) =
       close()
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-      _ = drawScene_for_a_viewport(eng, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
-      _ = drawScene_for_a_viewport(eng, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
-      _ = drawScene_for_a_viewport(eng, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
-      _ = drawScene_for_a_viewport(eng, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
       void
     end ;
     do RequestAnimationFrame.request((_ -> aux(eng)), #{id_canvas_area});
