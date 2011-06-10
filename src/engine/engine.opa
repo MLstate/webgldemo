@@ -24,7 +24,9 @@
   framePickBuffer: Webgl.WebGLFramebuffer
 } ;
 
-type engine.objects = { cube: (float, float, float) } ;
+type engine.id = int ;
+
+type engine.objects = { cube: (float, float, float); id: hidden_id } ;
 
 type engine.scene = list(engine.objects) ;
 
@@ -133,11 +135,13 @@ setup_boxes(eng) =
     _ZX=g(0, 0, w_l, h_d); _3D=g(w_l+sep_largeur, 0, w_r, h_d) }
 ;
 
-pc =
+@client (pc, register_color) =
+  bank = Mutable.make_client(IntMap.empty : intmap((float, float, float)));
   c() = 
     r() = Random.float(1.0);
-    (r(), r(), r())
-  List.fold((e, acc -> IntMap.add(e, c(), acc)), List.init(identity, 10), IntMap.empty)
+    (r(), r(), r()) ;
+  //List.fold((e, acc -> IntMap.add(e, c(), acc)), List.init(identity, 10), IntMap.empty)
+  (i -> IntMap.get(i, bank.get()), (i -> bank.set(IntMap.add(i, IntMap.get(i, bank.get()) ? c(), bank.get())))) 
 ;
 
 drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
@@ -191,8 +195,8 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      c(i) = IntMap.get(i, pc) ? (0.1, 0.2, 0.3);
-      do List.iteri((i, (pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, Option.some(c(i)))), scene);
+      c(i) = pc(i) ? (0.1, 0.2, 0.3);
+      do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, Option.some(c(pos.id)))), scene);
       void
     end ;
 
@@ -203,7 +207,7 @@ drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;
-    scene = List.map((p -> (p, Cube.create(gl))), get_scene());
+    scene = List.map((p -> (p, do register_color(p.id); Cube.create(gl))), get_scene());
     do match get_mode() with
     | {pick=pos; ~close} ->
       //do Log.debug("Picking", "...");
@@ -276,7 +280,8 @@ initGL(canvas_sel, width, height) : void =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene_and_register(eng, (-> [ {cube=(0.0, 0.0, -3.0)}, {cube=(3.0, 0.0, 0.0)}, {cube=(6.0, 0.0, 0.0)} ]), mode.get);
+    org_scene = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ];
+    do drawScene_and_register(eng, (-> org_scene), mode.get);
     void
   | { none } -> error("no context found")
   end ;

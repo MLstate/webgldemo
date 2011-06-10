@@ -7,6 +7,7 @@ build: main.exe
 main.exe:
 	cd plugins && make all
 	opa --project-root '$(shell pwd)' --js-no-cleanup --js-no-global-inlining --js-no-local-inlining --js-no-local-renaming \
+		src/common/fresh.opa \
 		plugins/requestAnimationFramePlugin.opp src/requestAnimationFrame.opa \
 		plugins/webglPlugin.opp src/webgl/webgl.opa \
 		plugins/glMatrixPlugin.opp src/glMatrix/glMatrix.opa \
