@@ -13,6 +13,7 @@ main.exe:
 		plugins/glMatrixPlugin.opp src/glMatrix/glMatrix.opa \
 		src/custom_shaders.opa \
 		src/engine/stack.opa src/engine/objects.opa src/engine/engine.opa \
+		src/modeler/modeler.opa \
 		src/main.opa
 	mv src/main.exe main.exe
 
