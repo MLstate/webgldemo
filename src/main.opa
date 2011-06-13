@@ -11,6 +11,15 @@ css = [ default_css ] ;
 
 _ = Random.random_init();
 
+/*
+ref = Mutable.make(4)
+rec val timer42 = Scheduler.make_timer(1000, (->
+  do jlog("a")
+  if ref.get() == 0 then timer42.stop()
+))
+do timer42.start()
+*/
+
 server_start_static_page() =
   width = 500;
   height = 500;
