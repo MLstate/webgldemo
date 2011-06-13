@@ -15,15 +15,16 @@ server_start_static_page() =
   width = 500;
   height = 500;
   <div>
-    <h1>Welcome to this demo</h1>
     <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> Modeler.init(#{id_canvas_area}, width, height)}/>                       
     <div id=#{id_work_area} />
   </div> ;
 
 urls =
   parser
-  | (.*) ->
-    html("Demo page {Date.to_string(Date.now())}", server_start_static_page())
+  | "/scene/" scene_url=(.*) ->
+    html("3D creation", server_start_static_page())
+  | "/Welcome" "/"? ->
+    html("Welcome", server_welcome_static_page())
   end ;
 
 
