@@ -1,9 +1,13 @@
 
+type Modeler = {
+  address: string
+}
+
 @client Modeler = {{
 
-  @private on_message(state, message) = {unchanged};
+  @private on_message(state : Modeler, message) = {unchanged};
 
-  init(canvas_sel, width, height) : outcome =
+  init(scene_url, canvas_sel, width, height) : outcome =
     (get_scene, set_scene) = 
       org_scene = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ];
       ref = Mutable.make_client(org_scene);
@@ -15,7 +19,10 @@
     res = initGL(canvas_sel, width, height, get_scene, mouse_listener) ;
     match res with
     | {success} ->
-      do ignore(Session.make(List.empty, on_message));
+      org_state = {
+        address=scene_url
+        } ;
+      do ignore(Session.make(org_state, on_message));
       res
     | _ -> res
     end ;
