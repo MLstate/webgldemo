@@ -37,7 +37,7 @@ Webgl = {{
   Uint8Array = {{
     from_int_list : list(int) -> Webgl.Uint8Array = %% WebglPlugin.Uint8Array_from_int_list %% ;
     to_ArrayBuffer : Webgl.Uint8Array -> Webgl.ArrayBuffer = %% WebglPlugin.Uint8Array_to_ArrayBuffer %% ;
-    to_int_list : Webgl.Uint8Array -> list(int) = (a -> List.rev(%% WebglPlugin.Uint8Array_to_int_list %%(a)));
+    to_int_list : Webgl.Uint8Array -> list(int) = %% WebglPlugin.Uint8Array_to_int_list %% ;
   }}
 
   getContext : Dom.private.element, string -> option(Webgl.Context.private) = %% WebglPlugin.getContext %% ;

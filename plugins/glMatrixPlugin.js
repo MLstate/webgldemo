@@ -49,7 +49,7 @@
 
 ##register mat3_to_list : mat3 -> opa[ list(float) ]
 ##args(src)
-{ return js2list([src[0],src[1],src[2],src[3],src[4],src[5],src[6],src[7],src[8]].reverse()); }
+{ return js2list([src[0],src[1],src[2],src[3],src[4],src[5],src[6],src[7],src[8]]); }
 
 ##register mat3_str : mat3 -> string
 ##args(mat)
@@ -62,7 +62,7 @@
 
 ##register mat4_to_list : mat4 -> opa[ list(float) ]
 ##args(src)
-{ return js2list([src[0],src[1],src[2],src[3],src[4],src[5],src[6],src[7],src[8],src[9],src[10],src[11],src[12],src[13],src[14],src[15]].reverse()); }
+{ return js2list([src[0],src[1],src[2],src[3],src[4],src[5],src[6],src[7],src[8],src[9],src[10],src[11],src[12],src[13],src[14],src[15]]); }
 
 ##register mat4_create : -> mat4
 ##args()
