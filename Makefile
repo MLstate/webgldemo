@@ -10,6 +10,7 @@ main.exe:
 		src/common/fresh.opa \
 		plugins/requestAnimationFramePlugin.opp src/requestAnimationFrame.opa \
 		plugins/webglPlugin.opp src/webgl/webgl.opa \
+		plugins/opps/webglUtilsPlugin.opp src/webglUtils/webglUtils.opa \
 		plugins/glMatrixPlugin.opp src/glMatrix/glMatrix.opa \
 		src/custom_shaders.opa \
 		src/engine/stack.opa src/engine/objects.opa src/engine/engine.opa \

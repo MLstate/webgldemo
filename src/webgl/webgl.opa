@@ -1,6 +1,8 @@
 
 type Webgl.Context.private = external;
 
+type Webgl.Creation.Context = { ok: Webgl.Context.private } / { ko: {GET_A_WEBGL_BROWSER} / {OTHER_PROBLEM} };
+
 type Webgl.WebGLBuffer = external;
 type Webgl.WebGLFramebuffer = external;
 type Webgl.WebGLRenderbuffer = external;
