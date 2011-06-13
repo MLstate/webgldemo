@@ -1,6 +1,8 @@
 
 @client Modeler = {{
 
+  @private on_message(state, message) = {unchanged};
+
   init(canvas_sel, width, height) : outcome =
     (get_scene, set_scene) = 
       org_scene = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ];
@@ -10,6 +12,12 @@
       | { mousedown; ~x; ~z } ->
         set_scene(List.cons({cube=(x, 0.0, z); id=CHF()}, get_scene()))
       end ;
-    initGL(canvas_sel, width, height, get_scene, mouse_listener) ;
+    res = initGL(canvas_sel, width, height, get_scene, mouse_listener) ;
+    match res with
+    | {success} ->
+      do ignore(Session.make(List.empty, on_message));
+      res
+    | _ -> res
+    end ;
 
 }}
