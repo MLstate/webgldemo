@@ -1,7 +1,7 @@
 
 @client Modeler = {{
 
-  init(canvas_sel, width, height) : void =
+  init(canvas_sel, width, height) : outcome =
     (get_scene, set_scene) = 
       org_scene = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ];
       ref = Mutable.make_client(org_scene);
