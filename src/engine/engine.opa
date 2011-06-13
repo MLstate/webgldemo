@@ -251,8 +251,8 @@ drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
 ;
 
 initGL(canvas_sel, width, height, get_scene, mouse_listener) : void =
-  match Webgl.getContext(Dom.of_selection(canvas_sel), "experimental-webgl") with
-  | { some=context } ->
+  match WebGLUtils.setupWebGL_with_custom_failure(Dom.of_selection(canvas_sel)) with
+  | { ok=context } ->
     mode = Mutable.make_client({normal});
     is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
     _ = 
@@ -285,5 +285,5 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : void =
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
     do drawScene_and_register(eng, get_scene, mode.get);
     void
-  | { none } -> error("no context found")
+  | { ko=_ } -> error("no context found")
   end ;

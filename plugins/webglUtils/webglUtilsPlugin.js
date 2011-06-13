@@ -8,7 +8,7 @@
 
 ##extern-type Webgl.Creation.Context
 
-##register setupWebGL_with_custom_failure: Dom.private.element -> opa[ Webgl.Creation.Context ]
+    ##register setupWebGL_with_custom_failure: Dom.private.element -> opa[Webgl.Creation.Context]
 ##args(canvas)
 {
   if (!window.WebGLRenderingContext) {
@@ -16,10 +16,14 @@
   }
 
   var opt_attribs = null;
-  var context = create3DContext(canvas, opt_attribs);
-  if (!context) {
-      return { ko: {OTHER_PROBLEM: null} };
+  if(canvas && canvas[0] && canvas[0].getContext) {
+    var context = WebGLUtils.create3DContext(canvas[0], opt_attribs);
+    if (!context) {
+      return { ko: {OTHER_PROBLEM: js_void} };
+    } else {
+      return { ok:context };
+    }
   } else {
-    return context;
+      return { ko: {OTHER_PROBLEM: js_void} };
   }
 }

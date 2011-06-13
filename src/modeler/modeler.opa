@@ -9,7 +9,7 @@
     mouse_listener(e) = match e with
       | { mousedown; ~x; ~z } ->
         set_scene(List.cons({cube=(x, 0.0, z); id=CHF()}, get_scene()))
-      end ; 
+      end ;
     initGL(canvas_sel, width, height, get_scene, mouse_listener) ;
 
 }}
