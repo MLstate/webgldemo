@@ -26,7 +26,7 @@ server_start_static_page() =
   fail_msg = 
     <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
   <div>
-    <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> if Outcome.is_failure(Modeler.init(#{id_canvas_area}, width, height)) then (_ = Dom.put_replace(#{id_canvas_area}, Dom.of_xhtml(fail_msg)); void)}/>
+    <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> if Outcome.is_failure(Modeler.init(#{id_canvas_area}, width, height)) then ignore(Dom.put_replace(#{id_canvas_area}, Dom.of_xhtml(fail_msg)))}/>
     <div id=#{id_work_area} />
   </div> ;
 
