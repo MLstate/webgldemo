@@ -1,11 +1,14 @@
 
 type Modeler = {
-  address: string
+  address: string;
 }
 
 @client Modeler = {{
 
-  @private on_message(state : Modeler, message) = {unchanged};
+  @private on_message(state : Modeler, message) = match message with
+    | {get_scene_and_do=f} -> f(List.empty)
+    | _ -> {unchanged}
+    end ;
 
   init(scene_url, canvas_sel, width, height) : outcome =
     (get_scene, set_scene) = 
@@ -22,7 +25,7 @@ type Modeler = {
       org_state = {
         address=scene_url
         } ;
-      do ignore(Session.make(org_state, on_message));
+      do ignore(SessionExt.make_with_getter(org_state, on_message));
       res
     | _ -> res
     end ;
