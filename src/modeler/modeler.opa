@@ -4,12 +4,12 @@ type Modeler.objects = { cube: (float, float, float); id: hidden_id } ;
 
 type Modeler.scene = list(Modeler.objects) ;
 
-type Modeler.mode = {selection} / {add_cube} ;
+type Modeler.tool.mode = {selection} / {add_cube} ;
 
-type Modeler = {
+type Modeler.modeler = {
   address: string;
   scene: Modeler.scene;
-  mode: Modeler.mode
+  mode: Modeler.tool.mode
 } ;
 
 Scene = {{ 
@@ -32,7 +32,7 @@ Modeler = {{
 
 @client GuiModeler = {{
 
-  @private on_message(state : Modeler, message) = match message with
+  @private on_message(state : Modeler.modeler, message) = match message with
     | {click_on_scene; ~where} -> { set=Modeler.use_tool(state, where) }
     | _ -> {unchanged}
     end ;
