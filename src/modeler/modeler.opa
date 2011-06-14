@@ -22,7 +22,8 @@ Scene = {{
 Modeler = {{
   empty(scene_url) = { address=scene_url; scene=Scene.empty(); mode={selection} } ;
 
-  use_tool(modeler, where) = 
+  use_tool(modeler, where, possible_target) = 
+    do Log.info("Modeler", "using tool at ({where.x},{where.z}) perhaps on the target: '{possible_target}'");
     match modeler.mode with
     | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
     | {selection} -> modeler
@@ -33,8 +34,8 @@ Modeler = {{
 @client GuiModeler = {{
 
   @private on_message(state : Modeler.modeler, message) = match message with
-    | {click_on_scene; ~where} -> { set=Modeler.use_tool(state, where) }
-    | _ -> {unchanged}
+    | {click_on_scene; ~where; ~possible_target} -> { set=Modeler.use_tool(state, where, possible_target) }
+    //| _ -> {unchanged}
     end ;
 
   init(scene_url, canvas_sel, width, height) : outcome =
@@ -42,7 +43,7 @@ Modeler = {{
       (channel, get_state) = SessionExt.make_with_getter(Modeler.empty(scene_url), on_message);
       (channel, (-> get_state().scene)) ;
     mouse_listener(e) = match e with
-      | { mousedown; ~x; ~z } -> Session.send(channel, {click_to_scene; where={~x; ~z}})
+      | { mousedown; ~x; ~z; ~possible_target } -> Session.send(channel, {click_on_scene; where={~x; ~z}; ~possible_target})
       end ;
     res = initGL(canvas_sel, width, height, get_scene, mouse_listener) ;
     match res with

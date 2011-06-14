@@ -227,8 +227,12 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
         end ;
       do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ v2 }");
       //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
+      possible_target =
+        (r, g, b) = pickedColor;
+        f(z) = (z.f2.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
+        Option.map((u -> u.f2.id), List.find(f, eng.scene));
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-      cont({ mousedown; x=v2.f1; z=v2.f3})
+      cont({ mousedown; x=v2.f1; z=v2.f3; ~possible_target })
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});

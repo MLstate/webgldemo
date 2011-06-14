@@ -2,7 +2,8 @@
 type engine.color = (float, float, float);
 
 @private random_color() : engine.color =
-  r() = Random.float(1.0);
+  // we draw color with float, but we read them back as integer
+  r() = float_of_int(Random.int(256)) / 255.;
   (r(), r(), r());
 
 type object = { 
