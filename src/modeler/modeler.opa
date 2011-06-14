@@ -29,6 +29,8 @@ Modeler = {{
     | {selection} -> modeler
     end ;
 
+  change_tool(modeler, new_mode) = { modeler with mode=new_mode };
+
 }} ;
 
 @client GuiModeler = {{
