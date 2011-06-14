@@ -24,12 +24,6 @@
   framePickBuffer: Webgl.WebGLFramebuffer
 } ;
 
-type engine.id = int ;
-
-type engine.objects = { cube: (float, float, float); id: hidden_id } ;
-
-type engine.scene = list(engine.objects) ;
-
 @client initPickBuffer(eng) = 
   gl = eng.context;
   framePickBuffer = Webgl.createFramebuffer(gl);
@@ -203,7 +197,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   (pMatrix, mvMatrix)
 ;
 
-drawScene_and_register(eng, get_scene : (->engine.scene), get_mode) =
+drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;

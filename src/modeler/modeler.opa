@@ -1,8 +1,13 @@
 
+
+type Modeler.objects = { cube: (float, float, float); id: hidden_id } ;
+
+type Modeler.scene = list(Modeler.objects) ;
+
 type Modeler = {
   address: string;
-  scene: engine.scene
-}
+  scene: Modeler.scene
+} ;
 
 @client Modeler = {{
 
