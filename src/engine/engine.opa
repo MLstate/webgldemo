@@ -189,8 +189,8 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   (pMatrix, mvMatrix)
 ;
 
-drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
-  viewbox = setup_boxes(eng) ;
+drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
+  viewbox = setup_boxes(org_eng) ;
   rec aux(eng) =
     gl = eng.context;
     (eng, scene) = 
@@ -240,7 +240,7 @@ drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
     do RequestAnimationFrame.request((_ -> aux(eng)), #{id_canvas_area});
     void
     ;
-  aux(eng) 
+  aux(org_eng) 
 ;
 
 initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
