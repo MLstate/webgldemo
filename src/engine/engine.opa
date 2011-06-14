@@ -195,8 +195,8 @@ drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
     gl = eng.context;
     (eng, scene) = 
       f(p) = 
-        match List.find((z -> z.f2.id == p.id), eng.scene) with
-        | { ~some } -> some
+        match List.find((z_in_mem -> z_in_mem.f2.id == p.id), eng.scene) with
+        | { some=in_mem } -> { in_mem with f1=p.cube }
         | { none } -> (p.cube, Cube.create(gl, p.id))
         end;
       scene = List.map(f, get_scene());
