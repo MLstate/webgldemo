@@ -17,25 +17,29 @@ Scene = {{
 
   add_cube(scene, where) = List.cons({cube=(where.x, 0.0, where.z); id=CHF()}, scene) ;
 
-}}
+}} ;
+
+Modeler = {{
+  empty(scene_url) = { address=scene_url; scene=Scene.empty(); mode={selection} } ;
+
+  use_tool(modeler, where) = 
+    match modeler.mode with
+    | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
+    | {selection} -> modeler
+    end ;
+
+}} ;
 
 @client GuiModeler = {{
 
   @private on_message(state : Modeler, message) = match message with
-    | {click_on_scene; ~where} ->
-      match state.mode with
-      | {add_cube} -> { set={ state with scene=Scene.add_cube(state.scene, where) }}
-      | {selection} -> {unchanged}
-      end
+    | {click_on_scene; ~where} -> { set=Modeler.use_tool(state, where) }
     | _ -> {unchanged}
     end ;
 
   init(scene_url, canvas_sel, width, height) : outcome =
-    org_state = {
-      address=scene_url; scene=Scene.empty(); mode={selection}
-      } ;
     (channel, get_scene) =
-      (channel, get_state) = SessionExt.make_with_getter(org_state, on_message);
+      (channel, get_state) = SessionExt.make_with_getter(Modeler.empty(scene_url), on_message);
       (channel, (-> get_state().scene)) ;
     mouse_listener(e) = match e with
       | { mousedown; ~x; ~z } -> Session.send(channel, {click_to_scene; where={~x; ~z}})
