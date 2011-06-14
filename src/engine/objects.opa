@@ -1,10 +1,18 @@
 
+type engine.color = (float, float, float);
+
+@private random_color() : engine.color =
+  r() = Random.float(1.0);
+  (r(), r(), r());
+
 type object = { 
-  positions: Webgl.WebGLBuffer
+  positions: Webgl.WebGLBuffer;
   itemSize: int;
   numItems: int;
-  normals: Webgl.WebGLBuffer
-  indexs: Webgl.WebGLBuffer
+  normals: Webgl.WebGLBuffer;
+  indexs: Webgl.WebGLBuffer;
+  picking_color: engine.color;
+  id: hidden_id
 }
 
 display(eng, pMatrix, mvMatrix, position, object, overide_color) =
@@ -24,7 +32,7 @@ display(eng, pMatrix, mvMatrix, position, object, overide_color) =
 ;
 
 Cube = {{
-  create(gl) =
+  create(gl, id) =
     //global variable to hold the square buffer
     //We create a buffer for the square's vertex positions.
     squareVertexPositionBuffer = Webgl.createBuffer(gl);
@@ -127,7 +135,7 @@ Cube = {{
     cubeVertexIndexBuffer = Webgl.createBuffer(gl);
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
-    { positions=squareVertexPositionBuffer; itemSize=3; numItems=24; normals=squareVertexNormalBuffer; indexs=cubeVertexIndexBuffer } : object
+    { positions=squareVertexPositionBuffer; itemSize=3; numItems=24; normals=squareVertexNormalBuffer; indexs=cubeVertexIndexBuffer; picking_color=random_color(); ~id } : object
   ;
 
 

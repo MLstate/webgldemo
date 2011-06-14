@@ -201,7 +201,7 @@ drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;
-    scene = List.map((p -> (p, do register_color(p.id); Cube.create(gl))), get_scene());
+    scene = List.map((p -> (p, do register_color(p.id); Cube.create(gl, p.id))), get_scene());
     do match get_mode() with
     | {pick=pos; ~cont} ->
       //do Log.debug("Picking", "...");
