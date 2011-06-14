@@ -129,14 +129,6 @@ setup_boxes(eng) =
     _ZX=g(0, 0, w_l, h_d); _3D=g(w_l+sep_largeur, 0, w_r, h_d) }
 ;
 
-@client (pc, register_color) =
-  bank = Mutable.make_client(IntMap.empty : intmap((float, float, float)));
-  c() = 
-    r() = Random.float(1.0);
-    (r(), r(), r()) ;
-  //List.fold((e, acc -> IntMap.add(e, c(), acc)), List.init(identity, 10), IntMap.empty)
-  (i -> IntMap.get(i, bank.get()), (i -> bank.set(IntMap.add(i, IntMap.get(i, bank.get()) ? c(), bank.get())))) 
-;
 
 drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
@@ -189,7 +181,6 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      c(i) = pc(i) ? (0.1, 0.2, 0.3);
       do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, true)), scene);
       void
     end ;
@@ -201,7 +192,7 @@ drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;
-    scene = List.map((p -> (p, do register_color(p.id); Cube.create(gl, p.id))), get_scene());
+    scene = List.map((p -> (p, Cube.create(gl, p.id))), get_scene());
     do match get_mode() with
     | {pick=pos; ~cont} ->
       //do Log.debug("Picking", "...");
