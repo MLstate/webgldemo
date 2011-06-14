@@ -1,8 +1,8 @@
 @private id_work_area = "work_area" ;
-@private id_canvas_area = "canvas_area" ;
+@private id_gui_area = "gui_area" ;
 
 default_css = css 
-#{id_canvas_area} {
+#{id_gui_area} {
    background-color: #D000D0;
 }
 ;
@@ -23,10 +23,8 @@ do timer42.start()
 server_modeler_static_page(scene_url) =
   width = 500;
   height = 500;
-  fail_msg = 
-    <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
   <div>
-    <canvas width={width} height={height} id=#{id_canvas_area} onready={_ -> if Outcome.is_failure(GuiModeler.init(scene_url, #{id_canvas_area}, width, height)) then ignore(Dom.put_replace(#{id_canvas_area}, Dom.of_xhtml(fail_msg)))}/>
+    <div id=#{id_gui_area} onready={_ -> GuiModeler.init(scene_url, #{id_gui_area}, width, height)}/>
     <div id=#{id_work_area} />
   </div> ;
 

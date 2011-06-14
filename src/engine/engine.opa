@@ -22,7 +22,8 @@
   shaderProgram: my_custom_shaderProgram
   static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
   framePickBuffer: Webgl.WebGLFramebuffer;
-  scene: list((vec3, object))
+  scene: list((vec3, object));
+  selector: dom
 } ;
 
 @client initPickBuffer(eng) = 
@@ -241,7 +242,7 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
       _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
       void
     end ;
-    do RequestAnimationFrame.request((_ -> aux(eng)), #{id_canvas_area});
+    do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
     void
     ;
   aux(org_eng) 
@@ -255,7 +256,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
     _ = 
       handler(e) = 
         m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
-          c_pos = Dom.get_offset(#{id_canvas_area});
+          c_pos = Dom.get_offset(canvas_sel);
           rel = e.mouse_position_on_page;
           { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
         // now with gl the origin will be at the lower left corner
@@ -268,7 +269,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
       Dom.bind(canvas_sel, { mousedown }, handler);
     gl = context;
     eng : engine =
-      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty });
+      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel });
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=

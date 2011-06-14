@@ -40,19 +40,20 @@ Modeler = {{
     //| _ -> {unchanged}
     end ;
 
-  init(scene_url, canvas_sel, width, height) : outcome =
+  init(scene_url, parent_sel:dom, width, height) : void =
+    id_canvas_canvas = "canvas_canvas" ;
+    fail_msg = 
+      <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
+    base =
+      <div />
+      <canvas width={width} height={height} id=#{id_canvas_canvas} ></canvas>;
+    do ignore(Dom.put_inside(parent_sel, Dom.of_xhtml(base)));
     (channel, get_scene) =
       (channel, get_state) = SessionExt.make_with_getter(Modeler.empty(scene_url), on_message);
       (channel, (-> get_state().scene)) ;
     mouse_listener(e) = match e with
       | { mousedown; ~x; ~z; ~possible_target } -> Session.send(channel, {click_on_scene; where={~x; ~z}; ~possible_target})
       end ;
-    res = initGL(canvas_sel, width, height, get_scene, mouse_listener) ;
-    match res with
-    | {success} ->
-
-      res
-    | _ -> res
-    end ;
-
+    res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
+    if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg)));
 }}
