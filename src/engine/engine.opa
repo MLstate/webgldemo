@@ -21,7 +21,8 @@
   canvas: { selector:dom; width: int; height: int };
   shaderProgram: my_custom_shaderProgram
   static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
-  framePickBuffer: Webgl.WebGLFramebuffer
+  framePickBuffer: Webgl.WebGLFramebuffer;
+  scene: list((vec3, object))
 } ;
 
 @client initPickBuffer(eng) = 
@@ -176,12 +177,12 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
 
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
       do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
-      List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, false)), scene)
+      List.iter(((_, (pos, object)) -> display(eng, pMatrix, mvMatrix, pos, object, false)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos.cube, object, true)), scene);
+      do List.iter(((_, (pos, object)) -> display(eng, pMatrix, mvMatrix, pos, object, true)), scene);
       void
     end ;
 
@@ -192,7 +193,14 @@ drawScene_and_register(eng, get_scene : (->Modeler.scene), get_mode) =
   viewbox = setup_boxes(eng) ;
   rec aux(eng) =
     gl = eng.context;
-    scene = List.map((p -> (p, Cube.create(gl, p.id))), get_scene());
+    scene = 
+      f(p) = 
+        match List.find((z -> z.f2.id == p.id), eng.scene) with
+        | { ~some } -> (p, some)
+        | { none } -> (p, (p.cube, Cube.create(gl, p.id)))
+        end;
+      List.map(f, get_scene());
+    eng = { eng with scene=List.map((z -> z.f2), scene) };
     do match get_mode() with
     | {pick=pos; ~cont} ->
       //do Log.debug("Picking", "...");
@@ -256,7 +264,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
       Dom.bind(canvas_sel, { mousedown }, handler);
     gl = context;
     eng : engine =
-      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height } });
+      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty });
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
