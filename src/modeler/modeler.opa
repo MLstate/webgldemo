@@ -9,7 +9,7 @@ type Modeler = {
   scene: Modeler.scene
 } ;
 
-@client Modeler = {{
+@client GuiModeler = {{
 
   @private on_message(state : Modeler, message) = match message with
     | {add_to_scene; ~where} ->
