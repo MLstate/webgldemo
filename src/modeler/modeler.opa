@@ -54,7 +54,7 @@ Modeler = {{
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg)));
     base =
-      <div />
+      <p><a>Sel</a> | <a>Cube</a></p>
       <canvas width={width} height={height} id=#{id_canvas_canvas} onready={and_do} ></canvas>;
     ignore(Dom.put_inside(parent_sel, Dom.of_xhtml(base)));
 
