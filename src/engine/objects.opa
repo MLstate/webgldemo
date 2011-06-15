@@ -7,11 +7,11 @@ type engine.color = (float, float, float);
   (r(), r(), r());
 
 type object = { 
-  positions: Webgl.WebGLBuffer;
+  vertexPositions: Webgl.WebGLBuffer;
   itemSize: int;
   numItems: int;
-  normals: Webgl.WebGLBuffer;
-  indexs: Webgl.WebGLBuffer;
+  vertexNormals: Webgl.WebGLBuffer;
+  vertexIndexs: Webgl.WebGLBuffer;
   picking_color: engine.color;
   id: hidden_id
 }
@@ -22,11 +22,11 @@ display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking, is_
     if overide_color_for_picking then object.picking_color 
     else if is_selected then (0.7, 0., 0.) else (0.4, 0.4, 0.4);
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, color.f1, color.f2, color.f3);
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
+  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.vertexPositions);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.normals);
+  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.vertexNormals);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
-  do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), object.indexs);
+  do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), object.vertexIndexs);
 
   mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(position), n))) ;
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
@@ -138,7 +138,7 @@ Cube = {{
     cubeVertexIndexBuffer = Webgl.createBuffer(gl);
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
-    { positions=squareVertexPositionBuffer; itemSize=3; numItems=24; normals=squareVertexNormalBuffer; indexs=cubeVertexIndexBuffer; picking_color=random_color(); ~id } : object
+    { vertexPositions=squareVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=squareVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=random_color(); ~id } : object
   ;
 
 
