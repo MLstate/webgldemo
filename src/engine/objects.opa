@@ -16,9 +16,11 @@ type object = {
   id: hidden_id
 }
 
-display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking) =
+display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking, is_selected) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
-  color = if overide_color_for_picking then object.picking_color else (0.4, 0.4, 0.4);
+  color = 
+    if overide_color_for_picking then object.picking_color 
+    else if is_selected then (0.7, 0., 0.) else (0.4, 0.4, 0.4);
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, color.f1, color.f2, color.f3);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);

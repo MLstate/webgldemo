@@ -198,12 +198,12 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
           do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
           Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75)
         | _ -> void end;
-      List.iter(((pos, _, object) -> display(eng, pMatrix, mvMatrix, pos, object, false)), scene)
+      List.iter(((pos, is_selected, object) -> display(eng, pMatrix, mvMatrix, pos, object, false, is_selected)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      do List.iter(((pos, _, object) -> display(eng, pMatrix, mvMatrix, pos, object, true)), scene);
+      do List.iter(((pos, _, object) -> display(eng, pMatrix, mvMatrix, pos, object, true, false)), scene);
       void
     end ;
 
