@@ -3,12 +3,12 @@ type Modeler.objects = { cube: (float, float, float); id: hidden_id; color: Colo
 
 type Modeler.scene = { selection: option(Modeler.objects); others: list(Modeler.objects) };
 
-type Modeler.tool.mode = {selection} / {add_cube} ;
+type Modeler.tool = {selection} / {add_cube} ;
 
 type Modeler.modeler = {
   address: string;
   scene: Modeler.scene;
-  mode: Modeler.tool.mode
+  tool: Modeler.tool
 } ;
 
 Scene = {{
@@ -44,23 +44,23 @@ Scene = {{
 }} ;
 
 Modeler = {{
-  empty(scene_url) = { address=scene_url; scene=Scene.empty(); mode={selection} } ;
+  empty(scene_url) : Modeler.modeler = { address=scene_url; scene=Scene.empty(); tool={selection} } ;
 
-  use_tool(modeler, where, possible_target) = 
-    do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' in mode: '{modeler.mode}'");
-    match modeler.mode with
+  use_tool(modeler, where, possible_target)  : Modeler.modeler = 
+    do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
+    match modeler.tool with
     | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
     | {selection} -> { modeler with scene=Scene.selection(modeler.scene, possible_target) }
     end ;
 
-  change_tool(modeler, new_mode) = { modeler with mode=new_mode };
+  change_tool(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
 
 }} ;
 
 type GuiModeler.t = {
   modeler: Modeler.modeler;
   subjects: { 
-    mode: subject(Modeler.tool.mode);
+    tool: subject(Modeler.tool);
     selection: subject(option(Modeler.objects))
     }
 } ;
@@ -69,7 +69,7 @@ type GuiModeler.t = {
 
   empty(scene_url) : GuiModeler.t = 
     modeler = Modeler.empty(scene_url);
-    subjects = { mode=Observable.make(modeler.mode); selection=Observable.make(modeler.scene.selection) };
+    subjects = { tool=Observable.make(modeler.tool); selection=Observable.make(modeler.scene.selection) };
     { ~modeler; ~subjects };
 
   @private on_message(state : GuiModeler.t, message) = 
@@ -84,24 +84,24 @@ type GuiModeler.t = {
       else
         subjects = { state.subjects with selection=Observable.change_state(modeler.scene.selection, state.subjects.selection) };
         set({ ~subjects; ~modeler })
-    | {change_tool=new_mode} ->
-      modeler = Modeler.change_tool(state.modeler, new_mode);
-      subjects = { state.subjects with mode=Observable.change_state(new_mode, state.subjects.mode) };
+    | {change_tool=new_tool} ->
+      modeler = Modeler.change_tool(state.modeler, new_tool);
+      subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
       set({ ~subjects; ~modeler })
     end ;
 
-  setup_menu(parent_sel, channel, s_mode) : void =
-    f(some_mode) = match some_mode with
+  setup_menu(parent_sel, channel, s_tool) : void =
+    f(some_tool) = match some_tool with
       | {selection} -> (<>*Sel*</>, <>Cube</>)
       | {add_cube} -> (<>Sel</>, <>*Cube*</>)
       end ;
     (id_a, id_b) = (Random.string(7), Random.string(7));
-    on_mode_change = 
-      then_do(new_mode) = 
-        (text_a, text_b) = f(new_mode);
+    on_tool_change = 
+      then_do(new_tool) = 
+        (text_a, text_b) = f(new_tool);
         Dom.transform([#{id_a}<- text_a, #{id_b}<- text_b]);
       { si=(-> not(Dom.is_empty(#{id_a})) && not(Dom.is_empty(#{id_b}))); ~then_do; else_autoclean };
-    do Observable.register(on_mode_change, s_mode);
+    do Observable.register(on_tool_change, s_tool);
     menu =
       s(x) = (_ -> Session.send(channel, {change_tool=x}));
       <p><a id=#{id_a} onclick={s({selection})} >.</a> | <a id=#{id_b} onclick={s({add_cube})} >.</a></p>;
@@ -138,7 +138,7 @@ type GuiModeler.t = {
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
       else 
         the_subjects = get_subjects();
-        do setup_menu(parent_sel, channel, the_subjects.mode);
+        do setup_menu(parent_sel, channel, the_subjects.tool);
         setup_selection_view(parent_sel, the_subjects.selection);
     base =
       <canvas width={width} height={height} id=#{id_canvas_canvas} onready={and_do} ></canvas>;
