@@ -117,20 +117,19 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
 ;
 
 setup_boxes(eng) = 
-  sep_largeur = 2;
   g(x:int, y:int, w:int, h:int) = 
     inbox(pos) = (pos.x_px >= x) && (pos.y_px >= y) && (pos.x_px < (w + x)) && (pos.y_px < (h + y));
     { ~x; ~y; ~w; ~h; ~inbox } ;
   compute_left_right(x) = if ((mod(x, 2)) == 0) then
-      a = (x / 2) - 1;
-      (a, a)
+      a = (x / 2);
+      ((a, a), 0)
     else
       b = (x / 2);
-      (b - 1, b);
-  (w_l, w_r) = compute_left_right(eng.canvas.width);
-  (h_u, h_d) = compute_left_right(eng.canvas.height);
-  { _YX=g(0, h_d+sep_largeur, w_l, h_u); _YZ=g(w_l+sep_largeur, h_d+sep_largeur, w_r, h_u); 
-    _ZX=g(0, 0, w_l, h_d); _3D=g(w_l+sep_largeur, 0, w_r, h_d) }
+      ((b, b+1), 0);
+  ((w_l, w_r), e_w) = compute_left_right(eng.canvas.width);
+  ((h_u, h_d), e_h) = compute_left_right(eng.canvas.height);
+  { _YX=g(0, h_d+e_h, w_l, h_u); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u); 
+    _ZX=g(0, 0, w_l, h_d);       _3D=g(w_l+e_w, 0, w_r, h_d) }
 ;
 
 which_boxes(b, pos) =
@@ -216,7 +215,7 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
     do match get_mode() with
     | {pick=pos; ~cont} ->
       who = which_boxes(viewbox, pos);
-      do Log.debug("Picking", "in box: '{who}'");
+      do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
       _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
       (pMatrix, s) = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
