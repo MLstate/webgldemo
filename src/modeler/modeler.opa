@@ -55,6 +55,8 @@ Modeler = {{
 
   change_tool(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
 
+  scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=Scene.change_selection_color(modeler.scene, new_color) };
+
 }} ;
 
 type GuiModeler.t = {
@@ -88,6 +90,9 @@ type GuiModeler.t = {
       modeler = Modeler.change_tool(state.modeler, new_tool);
       subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
       set({ ~subjects; ~modeler })
+    | {modeler_change_scene_selection_color; ~new_color} ->
+      modeler = Modeler.scene_change_selection_color(state.modeler, new_color);
+      set_modeler(modeler)
     end ;
 
   setup_menu(parent_sel, channel, s_tool) : void =
