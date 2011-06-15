@@ -95,6 +95,22 @@ type GuiModeler.t = {
       s(x) = (_ -> Session.send(channel, {change_tool=x}));
       <p><a id=#{id_a} onclick={s({selection})} >.</a> | <a id=#{id_b} onclick={s({add_cube})} >.</a></p>;
     ignore(Dom.put_at_start(parent_sel, Dom.of_xhtml(menu)));
+
+  setup_selection_view(parent_sel, s_selection) : void =
+    id = Random.string(7);
+    do
+      f(some_selection) = match some_selection with
+        | {none} -> <></>
+        | {~some} -> <>{ "{some}" }</>
+        end ;
+      on_selection_change =
+        then_do(new_selection) = Dom.transform([#{id}<- f(new_selection)]);
+        { si=(->not(Dom.is_empty(#{id}))); ~then_do; else_autoclean };
+      Observable.register(on_selection_change, s_selection);
+    sel =
+      <div id=#{id} ></div>;
+    ignore(Dom.put_at_end(parent_sel, Dom.of_xhtml(sel)));
+
   
   init(scene_url, parent_sel:dom, width, height) : void =
     id_canvas_canvas = "canvas_canvas" ;
@@ -108,7 +124,11 @@ type GuiModeler.t = {
         | { mousedown; ~pos; ~possible_target } -> Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target})
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
-      if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) else setup_menu(parent_sel, channel, get_subjects().mode);
+      if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
+      else 
+        the_subjects = get_subjects();
+        do setup_menu(parent_sel, channel, the_subjects.mode);
+        setup_selection_view(parent_sel, the_subjects.selection);
     base =
       <canvas width={width} height={height} id=#{id_canvas_canvas} onready={and_do} ></canvas>;
     ignore(Dom.put_inside(parent_sel, Dom.of_xhtml(base)));
