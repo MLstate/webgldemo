@@ -20,15 +20,15 @@ Scene = {{
   extract_object(objects, target_id) : (option(Modeler.objects), list(Modeler.objects)) = List.extract_p((z -> z.id == target_id), objects);
   add_object(objects, object) : list(Modeler.objects) = List.cons(object, objects);
 
-  change_selection_color(scene, new_color) : Modeler.scene = 
+  selection_change_color(scene, new_color) : Modeler.scene = 
     match scene.selection with
     | {none} -> scene
     | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
     end ;
 
-  add_cube(scene, where) : Modeler.scene = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}, scene.others) };
+  others_add_cube(scene, where) : Modeler.scene = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}, scene.others) };
 
-  selection(scene, possible_target) : Modeler.scene =
+  selection_change(scene, possible_target) : Modeler.scene =
     match (possible_target, scene.selection) with
     | ({none}, {none}) -> scene
     | ({none}, {~some}) -> { selection=Option.none; others=List.cons(some, scene.others) }
@@ -49,13 +49,13 @@ Modeler = {{
   tool_use(modeler, where, possible_target)  : Modeler.modeler = 
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
     match modeler.tool with
-    | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
-    | {selection} -> { modeler with scene=Scene.selection(modeler.scene, possible_target) }
+    | {add_cube} -> { modeler with scene=Scene.others_add_cube(modeler.scene, where) }
+    | {selection} -> { modeler with scene=Scene.selection_change(modeler.scene, possible_target) }
     end ;
 
   tool_change(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
 
-  scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=Scene.change_selection_color(modeler.scene, new_color) };
+  scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=Scene.selection_change_color(modeler.scene, new_color) };
 
 }} ;
 
