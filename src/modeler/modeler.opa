@@ -2,7 +2,7 @@
 
 type Modeler.objects = { cube: (float, float, float); id: hidden_id } ;
 
-type Modeler.scene = list(Modeler.objects) ;
+type Modeler.scene = { selection: option(Modeler.objects); others: list(Modeler.objects) };
 
 type Modeler.tool.mode = {selection} / {add_cube} ;
 
@@ -13,9 +13,9 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{ 
-  empty() = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ] ;
+  empty() = { selection=Option.none; others=[ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ] };
 
-  add_cube(scene, where) = List.cons({cube=(where.x, where.y, where.z); id=CHF()}, scene) ;
+  add_cube(scene, where) = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF()}, scene.others) };
 
 }} ;
 

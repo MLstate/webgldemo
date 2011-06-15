@@ -16,13 +16,15 @@
   normals: Webgl.WebGLBuffer
 };
 
+@private type engine.scene = list((vec3, bool, object));
+
 @private type engine = {
   context: Webgl.Context.private;
   canvas: { selector:dom; width: int; height: int };
   shaderProgram: my_custom_shaderProgram
   static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
   framePickBuffer: Webgl.WebGLFramebuffer;
-  scene: list((vec3, object));
+  scene: engine.scene
   selector: dom
 } ;
 
@@ -196,29 +198,33 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
           do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
           Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75)
         | _ -> void end;
-      List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, false)), scene)
+      List.iter(((pos, _, object) -> display(eng, pMatrix, mvMatrix, pos, object, false)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      do List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, true)), scene);
+      do List.iter(((pos, _, object) -> display(eng, pMatrix, mvMatrix, pos, object, true)), scene);
       void
     end ;
 
   (pMatrix, mvMatrix)
 ;
 
-drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
+@private drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
   viewbox = setup_boxes(org_eng) ;
-  rec aux(eng) =
+  rec aux(eng:engine) =
     gl = eng.context;
     (eng, scene) = 
       f(p) = 
-        match List.find((z_in_mem -> z_in_mem.f2.id == p.id), eng.scene) with
-        | { some=in_mem } -> { in_mem with f1=p.cube }
-        | { none } -> (p.cube, Cube.create(gl, p.id))
+        match List.find((z_in_mem -> z_in_mem.f3.id == p.id), eng.scene) with
+        | { some=in_mem } -> { in_mem with f1=p.cube; f2=false }
+        | { none } -> (p.cube, false, Cube.create(gl, p.id))
         end;
-      scene = List.map(f, get_scene());
+      scene : engine.scene =
+        tmp = get_scene();
+        others_scene = List.map(f, tmp.others);
+        selection_scene = Option.switch((the -> [f(the)]), List.empty, tmp.selection);
+        List.append(selection_scene, others_scene);
       ({ eng with ~scene }, scene);
     do match get_mode() with
     | {pick=pos; ~cont} ->
@@ -249,8 +255,8 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
           //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
           possible_target =
             (r, g, b) = pickedColor;
-            f(z) = (z.f2.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
-            Option.map((u -> u.f2.id), List.find(f, eng.scene));
+            f(z) = (z.f3.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
+            Option.map((u -> u.f3.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
           cont({ mousedown; pos=this_viewbox.clear_near_far(v2); ~possible_target })
           end
