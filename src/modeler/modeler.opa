@@ -12,6 +12,10 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{
+  empty() : Modeler.scene =
+    c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
+    { selection=Option.some(c((0.0, 0.0, -3.0))); others=[ c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+
   find_object(objects, target_id) : option(Modeler.objects) = List.find((z -> z.id == target_id), objects);
   extract_object(objects, target_id) : (option(Modeler.objects), list(Modeler.objects)) = List.extract_p((z -> z.id == target_id), objects);
   add_object(objects, object) : list(Modeler.objects) = List.cons(object, objects);
@@ -21,10 +25,6 @@ Scene = {{
     | {none} -> scene
     | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
     end ;
-
-  empty() : Modeler.scene =
-    c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
-    { selection=Option.some(c((0.0, 0.0, -3.0))); others=[ c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
 
   add_cube(scene, where) : Modeler.scene = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}, scene.others) };
 
