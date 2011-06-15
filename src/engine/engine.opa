@@ -160,7 +160,6 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
     Stack.push(Stack.create(), tmp_mvMatrix);
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
   draw_rep(r, g, b, rep) =
-    do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
     do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, r, g, b);
     do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), rep.positions);
     do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, rep.itemSize, Webgl.FLOAT(gl), false, 0, 0);
@@ -171,13 +170,16 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
 
   _ = 
     match mode with
-    | {normal} -> 
+    | {normal} ->
+      do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
       do draw_rep(1.0, 0.0, 0.0, repcoords.x);
       do draw_rep(0.0, 1.0, 0.0, repcoords.y);
       do draw_rep(0.0, 0.0, 1.0, repcoords.z);
-
-      do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
-      do Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75);
+      do match who with 
+        | {_3D} -> 
+          do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
+          Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75)
+        | _ -> void end;
       List.iter(((pos, object) -> display(eng, pMatrix, mvMatrix, pos, object, false)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
