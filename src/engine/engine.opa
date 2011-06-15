@@ -116,10 +116,11 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
   void
 ;
 
-setup_boxes(eng) = 
-  g(x:int, y:int, w:int, h:int) = 
+setup_boxes(eng) =
+  cnf_x(pos) = { pos with f1=0.0 }; cnf_y(pos) = { pos with f2=0.0 }; cnf_z(pos) = { pos with f3=0.0 };
+  g(x:int, y:int, w:int, h:int, clear_near_far) =
     inbox(pos) = (pos.x_px >= x) && (pos.y_px >= y) && (pos.x_px < (w + x)) && (pos.y_px < (h + y));
-    { ~x; ~y; ~w; ~h; ~inbox } ;
+    { ~x; ~y; ~w; ~h; ~inbox; ~clear_near_far } ;
   compute_left_right(x) = if ((mod(x, 2)) == 0) then
       a = (x / 2);
       ((a, a), 0)
@@ -128,8 +129,8 @@ setup_boxes(eng) =
       ((b, b+1), 0);
   ((w_l, w_r), e_w) = compute_left_right(eng.canvas.width);
   ((h_u, h_d), e_h) = compute_left_right(eng.canvas.height);
-  { _YX=g(0, h_d+e_h, w_l, h_u); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u); 
-    _ZX=g(0, 0, w_l, h_d);       _3D=g(w_l+e_w, 0, w_r, h_d) }
+  { _YX=g(0, h_d+e_h, w_l, h_u, cnf_z); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u, cnf_x);
+    _ZX=g(0, 0, w_l, h_d, cnf_y);       _3D=g(w_l+e_w, 0, w_r, h_d, cnf_y) }
 ;
 
 which_box(b, pos) =
@@ -251,7 +252,7 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
             f(z) = (z.f2.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
             Option.map((u -> u.f2.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          cont({ mousedown; pos=v2; ~possible_target })
+          cont({ mousedown; pos=this_viewbox.clear_near_far(v2); ~possible_target })
           end
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
