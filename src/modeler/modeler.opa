@@ -26,9 +26,9 @@ Scene = {{
     c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
     { selection=Option.some(c((0.0, 0.0, -3.0))); others=[ c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
 
-  add_cube(scene, where) = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}, scene.others) };
+  add_cube(scene, where) : Modeler.scene = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}, scene.others) };
 
-  selection(scene, possible_target) =
+  selection(scene, possible_target) : Modeler.scene =
     match (possible_target, scene.selection) with
     | ({none}, {none}) -> scene
     | ({none}, {~some}) -> { selection=Option.none; others=List.cons(some, scene.others) }
