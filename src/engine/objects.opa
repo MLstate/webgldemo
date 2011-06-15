@@ -36,11 +36,6 @@ display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking, is_
 
 Cube = {{
   create(gl, id) =
-    //global variable to hold the cube buffer
-    //We create a buffer for the cube's vertex positions.
-    cubeVertexPositionBuffer = Webgl.createBuffer(gl);
-    //tells WebGL that any following operations that act on buffers should use the one we specify
-    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), cubeVertexPositionBuffer);
     //define our vertex positions as a list
     vertices = [
         // Front face
@@ -124,15 +119,15 @@ Cube = {{
               16, 17, 18,   16, 18, 19, // Right face
               20, 21, 22,   20, 22, 23  // Left face
           ];
+    //global variable to hold the cube buffer
+    //We create a buffer for the cube's vertex positions.
+    cubeVertexPositionBuffer = Webgl.createBuffer(gl);
+    //tells WebGL that any following operations that act on buffers should use the one we specify
+    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), cubeVertexPositionBuffer);
     //Now, we create a Float32Array object based on our list, 
     //and tell WebGL to use it to fill the current buffer
     do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), Webgl.STATIC_DRAW(gl));
-    //this 9-element buffer actually represents three separate vertex 
-    //positions (numItems), each of which is made up of three numbers (itemSize).
-    //do Webgl.set_itemSize(cubeVertexPositionBuffer, 3);
-    //do Webgl.set_numItems(cubeVertexPositionBuffer, 4);
     cubeVertexNormalBuffer = Webgl.createBuffer(gl);
-    //tells WebGL that any following operations that act on buffers should use the one we specify
     do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), cubeVertexNormalBuffer);
     do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertexNormals)), Webgl.STATIC_DRAW(gl));
     cubeVertexIndexBuffer = Webgl.createBuffer(gl);
