@@ -48,14 +48,17 @@ Modeler = {{
 
 type GuiModeler.t = {
   modeler: Modeler.modeler;
-  subjects: { mode: subject(Modeler.tool.mode) }
+  subjects: { 
+    mode: subject(Modeler.tool.mode);
+    selection: subject(option(Modeler.objects))
+    }
 } ;
 
 @client GuiModeler = {{
 
   empty(scene_url) : GuiModeler.t = 
     modeler = Modeler.empty(scene_url);
-    subjects = { mode=Observable.make(modeler.mode) };
+    subjects = { mode=Observable.make(modeler.mode); selection=Observable.make(modeler.scene.selection) };
     { ~modeler; ~subjects };
 
   @private on_message(state : GuiModeler.t, message) = 
@@ -63,7 +66,13 @@ type GuiModeler.t = {
     set_subjects(subjects) = { set={ state with ~subjects } } ;
     set(state) = { set=state };
     match message with
-    | {click_on_scene; ~where; ~possible_target} -> set_modeler(Modeler.use_tool(state.modeler, where, possible_target))
+    | {click_on_scene; ~where; ~possible_target} -> 
+      modeler = Modeler.use_tool(state.modeler, where, possible_target);
+      if Observable.get_state(state.subjects.selection) == modeler.scene.selection then
+        set_modeler(modeler)
+      else
+        subjects = { state.subjects with selection=Observable.change_state(modeler.scene.selection, state.subjects.selection) };
+        set({ ~subjects; ~modeler })
     | {change_tool=new_mode} ->
       modeler = Modeler.change_tool(state.modeler, new_mode);
       subjects = { state.subjects with mode=Observable.change_state(new_mode, state.subjects.mode) };
