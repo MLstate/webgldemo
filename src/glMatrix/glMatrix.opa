@@ -47,4 +47,6 @@ mat4 = {{
      rotateX : mat4, float, mat4 -> mat4 = %% glMatrixPlugin.mat4_rotateX %% ;
      rotateY : mat4, float, mat4 -> mat4 = %% glMatrixPlugin.mat4_rotateY %% ;
      rotateZ : mat4, float, mat4 -> mat4 = %% glMatrixPlugin.mat4_rotateZ %% ;
+
+     scale : mat4, vec3.private, mat4 -> mat4 = %% glMatrixPlugin.mat4_scale %% ;
 }}

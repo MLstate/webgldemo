@@ -129,3 +129,7 @@
 ##register mat4_rotateZ : mat4, float, mat4 -> mat4
 ##args(mat, angle, dest)
 { return mat4.rotateZ(mat, angle, dest); }
+
+##register mat4_scale : mat4, vec3.private, mat4 -> mat4
+##args(mat, vec, dest)
+{ return mat4.scale(mat, vec, dest); }
