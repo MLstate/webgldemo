@@ -36,7 +36,7 @@ display(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
 ;
 
 Cube = {{
-  create(gl, m_object, is_selected) =
+  create(gl, m_object : Modeler.objects, is_selected) : object =
     //define our vertex positions as a list
     vertices = [
         // Front face
@@ -134,7 +134,7 @@ Cube = {{
     cubeVertexIndexBuffer = Webgl.createBuffer(gl);
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
-    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=ColorFloat.random(); id=m_object.id; color=ColorFloat.from_Color_color(m_object.color)
+    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=ColorFloat.random(); id=m_object.id; color=m_object.color
     ; ~is_selected; position=m_object.cube } : object
   ;
 

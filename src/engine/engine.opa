@@ -217,7 +217,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
     (eng, scene) = 
       f(is_selected, p) = 
         match List.find((z_in_mem -> z_in_mem.id == p.id), eng.scene) with
-        | { some=in_mem } -> { in_mem with position=p.cube; ~is_selected; color=in_mem.color /* BUG update it */ }
+        | { some=in_mem } -> { in_mem with position=p.cube; ~is_selected; color=p.color }
         | { none } -> Cube.create(gl, p, is_selected)
         end;
       scene : engine.scene =
