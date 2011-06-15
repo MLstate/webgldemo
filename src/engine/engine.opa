@@ -118,7 +118,9 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
 
 setup_boxes(eng) = 
   sep_largeur = 2;
-  g(x, y, w, h) = { ~x; ~y; ~w; ~h } ;
+  g(x:int, y:int, w:int, h:int) = 
+    inbox(pos) = (pos.x_px >= x) && (pos.y_px >= y) && (pos.x_px < (w + x)) && (pos.y_px < (h + y));
+    { ~x; ~y; ~w; ~h; ~inbox } ;
   compute_left_right(x) = if ((mod(x, 2)) == 0) then
       a = (x / 2) - 1;
       (a, a)
@@ -131,6 +133,13 @@ setup_boxes(eng) =
     _ZX=g(0, 0, w_l, h_d); _3D=g(w_l+sep_largeur, 0, w_r, h_d) }
 ;
 
+which_boxes(b, pos) =
+  if b._YX.inbox(pos) then {_YX}
+  else if b._YZ.inbox(pos) then {_YZ}
+  else if b._ZX.inbox(pos) then {_ZX}
+  else if b._3D.inbox(pos) then {_3D}
+  else {out}
+;
 
 drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
@@ -206,7 +215,8 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
       ({ eng with ~scene }, scene);
     do match get_mode() with
     | {pick=pos; ~cont} ->
-      //do Log.debug("Picking", "...");
+      who = which_boxes(viewbox, pos);
+      do Log.debug("Picking", "in box: '{who}'");
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
       _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
       (pMatrix, s) = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
