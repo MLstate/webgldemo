@@ -15,7 +15,7 @@ type Modeler.modeler = {
 Scene = {{ 
   empty() = [ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ] ;
 
-  add_cube(scene, where) = List.cons({cube=(where.x, 0.0, where.z); id=CHF()}, scene) ;
+  add_cube(scene, where) = List.cons({cube=(where.x, where.y, where.z); id=CHF()}, scene) ;
 
 }} ;
 
@@ -23,7 +23,7 @@ Modeler = {{
   empty(scene_url) = { address=scene_url; scene=Scene.empty(); mode={selection} } ;
 
   use_tool(modeler, where, possible_target) = 
-    do Log.info("Modeler", "using tool at ({where.x},{where.z}) perhaps on the target: '{possible_target}'");
+    do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}'");
     match modeler.mode with
     | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
     | {selection} -> modeler
@@ -78,7 +78,7 @@ Modeler = {{
         (channel, get_state) = SessionExt.make_with_getter(empty(scene_url), on_message);
         (channel, (-> get_state().modeler.scene), (->get_state().subjects)) ;
       mouse_listener(e) = match e with
-        | { mousedown; ~x; ~z; ~possible_target } -> Session.send(channel, {click_on_scene; where={~x; ~z}; ~possible_target})
+        | { mousedown; ~pos; ~possible_target } -> Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target})
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) else setup_menu(parent_sel, channel, get_subjects().mode);

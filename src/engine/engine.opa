@@ -237,7 +237,7 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
           do mat4.multiplyVec4(mvMatrix, v1, v2);
           v22 = vec4.to_public(v2);
           //v22 = { v22 with f2=0.0 };
-          v2 = (v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4);
+          v2 = (v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4);
           data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
           do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
           pickedColor = match Webgl.Uint8Array.to_int_list(data) with
@@ -251,7 +251,7 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
             f(z) = (z.f2.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
             Option.map((u -> u.f2.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          cont({ mousedown; x=v2.f1; z=v2.f3; ~possible_target })
+          cont({ mousedown; pos=v2; ~possible_target })
           end
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
