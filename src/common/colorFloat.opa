@@ -10,4 +10,8 @@ ColorFloat = {{
     r() = float_of_int(Random.int(256)) / 255.;
     (r(), r(), r());
 
+  to_Color_color((r, g, b) : ColorFloat.color) : Color.color =
+    iof = int_of_float;
+    Color.rgb(iof(r * 255.0), iof(g * 255.0), iof(b * 255.0));
+
 }}

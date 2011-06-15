@@ -117,7 +117,9 @@ type GuiModeler.t = {
     do
       f(some_selection) = match some_selection with
         | {none} -> <></>
-        | {~some} -> <>{ "{some}" }</>
+        | {~some} -> 
+          c = Color.color_to_string(ColorFloat.to_Color_color(some.color));
+          <label>Color: <span width="5px" height="5px" style="background-color: {c};">*</span></label>
         end ;
       on_selection_change =
         then_do(new_selection) = Dom.transform([#{id}<- f(new_selection)]);
