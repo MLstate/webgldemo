@@ -1,5 +1,6 @@
 
 type engine.color = (float, float, float);
+type engine.position = vec3;
 
 @private random_color() : engine.color =
   // we draw color with float, but we read them back as integer
@@ -15,13 +16,15 @@ type object = {
   picking_color: engine.color;
   id: hidden_id;
   color: engine.color;
+  position: engine.position;
+  is_selected: bool
 }
 
-display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking, is_selected) =
+display(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
   color = 
     if overide_color_for_picking then object.picking_color 
-    else if is_selected then (0.7, 0., 0.) else object.color;
+    else if object.is_selected then (0.7, 0., 0.) else object.color;
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, color.f1, color.f2, color.f3);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.vertexPositions);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
@@ -29,14 +32,14 @@ display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking, is_
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
   do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), object.vertexIndexs);
 
-  mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(position), n))) ;
+  mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(object.position), n))) ;
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
   do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
   void
 ;
 
 Cube = {{
-  create(gl, id) =
+  create(gl, m_object, is_selected) =
     //define our vertex positions as a list
     vertices = [
         // Front face
@@ -135,7 +138,8 @@ Cube = {{
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
     a_color = random_color();
-    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=a_color; ~id; color=a_color } : object
+    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=a_color; id=m_object.id; color=a_color
+    ; ~is_selected; position=m_object.cube } : object
   ;
 
 

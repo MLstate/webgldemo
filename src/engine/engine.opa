@@ -198,12 +198,12 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
           do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
           Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75)
         | _ -> void end;
-      List.iter(((pos, is_selected, object) -> display(eng, pMatrix, mvMatrix, pos, object, false, is_selected)), scene)
+      List.iter(((_, _, object) -> display(eng, pMatrix, mvMatrix, object, false)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      do List.iter(((pos, _, object) -> display(eng, pMatrix, mvMatrix, pos, object, true, false)), scene);
+      do List.iter(((_, _, object) -> display(eng, pMatrix, mvMatrix, object, true)), scene);
       void
     end ;
 
@@ -215,15 +215,15 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   rec aux(eng:engine) =
     gl = eng.context;
     (eng, scene) = 
-      f(p) = 
+      f(is_selected, p) = 
         match List.find((z_in_mem -> z_in_mem.f3.id == p.id), eng.scene) with
         | { some=in_mem } -> { in_mem with f1=p.cube; f2=false }
-        | { none } -> (p.cube, false, Cube.create(gl, p.id))
+        | { none } -> (p.cube, false, Cube.create(gl, p, is_selected))
         end;
       scene : engine.scene =
         tmp = get_scene();
-        others_scene = List.map(f, tmp.others);
-        selection_scene = Option.switch((the -> [ { f(the) with f2=true } ]), List.empty, tmp.selection);
+        others_scene = List.map(f(false, _), tmp.others);
+        selection_scene = Option.switch((the -> [ { f(true, the) with f2=true } ]), List.empty, tmp.selection);
         List.append(selection_scene, others_scene);
       ({ eng with ~scene }, scene);
     do match get_mode() with
