@@ -46,14 +46,19 @@ Modeler = {{
 
 }} ;
 
+type GuiModeler.t = {
+  modeler: Modeler.modeler;
+  subjects: { mode: subject(Modeler.tool.mode) }
+} ;
+
 @client GuiModeler = {{
 
-  empty(scene_url) = 
+  empty(scene_url) : GuiModeler.t = 
     modeler = Modeler.empty(scene_url);
     subjects = { mode=Observable.make(modeler.mode) };
     { ~modeler; ~subjects };
 
-  @private on_message(state, message) = 
+  @private on_message(state : GuiModeler.t, message) = 
     set_modeler(modeler) = { set={ state with ~modeler } } ;
     set_subjects(subjects) = { set={ state with ~subjects } } ;
     set(state) = { set=state };
