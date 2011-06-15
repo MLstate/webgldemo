@@ -292,7 +292,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
           mouse_listener(e);
         do if not(is_picking(mode.get())) then mode.set({pick=gl_pos; ~cont});
         Log.debug("P", "[(,)-({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
-      Dom.bind(canvas_sel, { mousedown }, handler);
+      Dom.bind(canvas_sel, { click }, handler);
     gl = context;
     eng : engine =
       start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel });
