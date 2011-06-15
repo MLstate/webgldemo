@@ -11,7 +11,16 @@ type Modeler.modeler = {
   mode: Modeler.tool.mode
 } ;
 
-Scene = {{ 
+Scene = {{
+  find_object(objects, target_id) : option(Modeler.objects) = List.find((z -> z.id == target_id), objects);
+  extract_object(objects, target_id) : (option(Modeler.objects), list(Modeler.objects)) = List.extract_p((z -> z.id == target_id), objects);
+  add_object(objects, object) : list(Modeler.objects) = List.cons(object, objects);
+
+  change_selection_color(scene, new_color) : Modeler.scene = 
+    match scene.selection with
+    | {none} -> scene
+    | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
+    end ;
 
   empty() : Modeler.scene =
     c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
