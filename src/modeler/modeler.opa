@@ -89,7 +89,7 @@ type GuiModeler.t = {
       then_do(new_mode) = 
         (text_a, text_b) = f(new_mode);
         Dom.transform([#{id_a}<- text_a, #{id_b}<- text_b]);
-      { si=(->true); ~then_do; else_autoclean };
+      { si=(-> not(Dom.is_empty(#{id_a})) && not(Dom.is_empty(#{id_b}))); ~then_do; else_autoclean };
     do Observable.register(on_mode_change, s_mode);
     menu =
       s(x) = (_ -> Session.send(channel, {change_tool=x}));
