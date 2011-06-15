@@ -50,7 +50,7 @@ Observable =
 
   get_state(c : subject('a)) : 'a =
     tmp = c.state ;
-    {} = sleep(33, (-> Session.send((c).viewers, {check=tmp}))) ;
+    {} = Session.send((c).viewers, {check=tmp})
     tmp ;
 
   register(obs : notify('a), c : subject('a)) : void =
