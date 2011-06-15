@@ -36,11 +36,11 @@ display(eng, pMatrix, mvMatrix, position, object, overide_color_for_picking, is_
 
 Cube = {{
   create(gl, id) =
-    //global variable to hold the square buffer
-    //We create a buffer for the square's vertex positions.
-    squareVertexPositionBuffer = Webgl.createBuffer(gl);
+    //global variable to hold the cube buffer
+    //We create a buffer for the cube's vertex positions.
+    cubeVertexPositionBuffer = Webgl.createBuffer(gl);
     //tells WebGL that any following operations that act on buffers should use the one we specify
-    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), squareVertexPositionBuffer);
+    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), cubeVertexPositionBuffer);
     //define our vertex positions as a list
     vertices = [
         // Front face
@@ -129,16 +129,16 @@ Cube = {{
     do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), Webgl.STATIC_DRAW(gl));
     //this 9-element buffer actually represents three separate vertex 
     //positions (numItems), each of which is made up of three numbers (itemSize).
-    //do Webgl.set_itemSize(squareVertexPositionBuffer, 3);
-    //do Webgl.set_numItems(squareVertexPositionBuffer, 4);
-    squareVertexNormalBuffer = Webgl.createBuffer(gl);
+    //do Webgl.set_itemSize(cubeVertexPositionBuffer, 3);
+    //do Webgl.set_numItems(cubeVertexPositionBuffer, 4);
+    cubeVertexNormalBuffer = Webgl.createBuffer(gl);
     //tells WebGL that any following operations that act on buffers should use the one we specify
-    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), squareVertexNormalBuffer);
+    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), cubeVertexNormalBuffer);
     do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertexNormals)), Webgl.STATIC_DRAW(gl));
     cubeVertexIndexBuffer = Webgl.createBuffer(gl);
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
-    { vertexPositions=squareVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=squareVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=random_color(); ~id } : object
+    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=random_color(); ~id } : object
   ;
 
 
