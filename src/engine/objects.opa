@@ -1,11 +1,6 @@
 
-type engine.color = (float, float, float);
+type engine.color = ColorFloat.color;
 type engine.position = vec3;
-
-@private random_color() : engine.color =
-  // we draw color with float, but we read them back as integer
-  r() = float_of_int(Random.int(256)) / 255.;
-  (r(), r(), r());
 
 type object = { 
   vertexPositions: Webgl.WebGLBuffer;
@@ -19,6 +14,8 @@ type object = {
   position: engine.position;
   is_selected: bool
 }
+
+
 
 display(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
@@ -137,8 +134,7 @@ Cube = {{
     cubeVertexIndexBuffer = Webgl.createBuffer(gl);
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
-    a_color = random_color();
-    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=a_color; id=m_object.id; color=a_color
+    { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=ColorFloat.random(); id=m_object.id; color=ColorFloat.from_Color_color(m_object.color)
     ; ~is_selected; position=m_object.cube } : object
   ;
 

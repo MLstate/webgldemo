@@ -1,6 +1,5 @@
 
-
-type Modeler.objects = { cube: (float, float, float); id: hidden_id } ;
+type Modeler.objects = { cube: (float, float, float); id: hidden_id; color: Color.color } ;
 
 type Modeler.scene = { selection: option(Modeler.objects); others: list(Modeler.objects) };
 
@@ -13,9 +12,13 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{ 
-  empty() = { selection=Option.some({cube=(0.0, 0.0, -3.0); id=CHF()}); others=[ {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ] };
+  @private random_color() = Color.rgb(Random.int(256), Random.int(256), Random.int(256));
 
-  add_cube(scene, where) = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF()}, scene.others) };
+  empty() : Modeler.scene =
+    c(pos) = {cube=pos; id=CHF(); color=random_color()};
+    { selection=Option.some(c((0.0, 0.0, -3.0))); others=[ c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+
+  add_cube(scene, where) = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=random_color()}, scene.others) };
 
   selection(scene, possible_target) =
     match (possible_target, scene.selection) with
