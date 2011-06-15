@@ -13,9 +13,22 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{ 
-  empty() = { selection=Option.none; others=[ {cube=(0.0, 0.0, -3.0); id=CHF()}, {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ] };
+  empty() = { selection=Option.some({cube=(0.0, 0.0, -3.0); id=CHF()}); others=[ {cube=(3.0, 0.0, 0.0); id=CHF()}, {cube=(6.0, 0.0, 0.0); id=CHF()} ] };
 
   add_cube(scene, where) = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF()}, scene.others) };
+
+  selection(scene, possible_target) =
+    match (possible_target, scene.selection) with
+    | ({none}, {none}) -> scene
+    | ({none}, {~some}) -> { selection=Option.none; others=List.cons(some, scene.others) }
+    | ({~some}, osel) -> 
+      //we put back the sel with others
+      others = Option.switch((sel -> List.cons(sel, scene.others)), scene.others, osel);
+      //we retrieve the new sel
+      (new_sel, others) = List.extract_p((elt -> elt.id == some), others);
+      do if Option.is_none(new_sel) then Log.error("Scene", "a selection failed to find the corresponding object");
+      { selection=new_sel; ~others }
+    end ;
 
 }} ;
 
@@ -23,10 +36,10 @@ Modeler = {{
   empty(scene_url) = { address=scene_url; scene=Scene.empty(); mode={selection} } ;
 
   use_tool(modeler, where, possible_target) = 
-    do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}'");
+    do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' in mode: '{modeler.mode}'");
     match modeler.mode with
     | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
-    | {selection} -> modeler
+    | {selection} -> { modeler with scene=Scene.selection(modeler.scene, possible_target) }
     end ;
 
   change_tool(modeler, new_mode) = { modeler with mode=new_mode };
