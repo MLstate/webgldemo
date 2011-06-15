@@ -132,13 +132,20 @@ setup_boxes(eng) =
     _ZX=g(0, 0, w_l, h_d);       _3D=g(w_l+e_w, 0, w_r, h_d) }
 ;
 
-which_boxes(b, pos) =
+which_box(b, pos) =
   if b._YX.inbox(pos) then {_YX}
   else if b._YZ.inbox(pos) then {_YZ}
   else if b._ZX.inbox(pos) then {_ZX}
   else if b._3D.inbox(pos) then {_3D}
   else {out}
 ;
+
+fetch_box(b, who) = match who with
+  | {_YX} -> b._YX
+  | {_YZ} -> b._YZ
+  | {_ZX} -> b._ZX
+  | {_3D} -> b._3D
+  end ;
 
 drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
@@ -214,37 +221,38 @@ drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
       ({ eng with ~scene }, scene);
     do match get_mode() with
     | {pick=pos; ~cont} ->
-      who = which_boxes(viewbox, pos);
-      do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
-      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {pick});
-      (pMatrix, s) = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {pick});
-      //(pMatrix, s) = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-      x = (float_of_int(pos.x_px - viewbox._ZX.x) / float_of_int(viewbox._ZX.w)) * 2.0 - 1.0;
-      y = (float_of_int(pos.y_px - viewbox._ZX.y) / float_of_int(viewbox._ZX.h)) * 2.0 - 1.0;
-      mvMatrix = Stack.peek(s) ;
-      do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
-      do mat4.inverse(mvMatrix, mvMatrix);
-      v1 = vec4.from_public((x, y, 1.0, 1.0));
-      v2 = vec4.from_public((9.9, 9.9, 9.9, 9.9));
-      do mat4.multiplyVec4(mvMatrix, v1, v2);
-      v22 = vec4.to_public(v2);
-      //v22 = { v22 with f2=0.0 };
-      v2 = (v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4);
-      data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
-      do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
-      pickedColor = match Webgl.Uint8Array.to_int_list(data) with
-        | [r, g, b, _] -> (r, g, b)
-        | _ -> error("Picking failure")
-        end ;
-      do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ v2 }");
-      //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
-      possible_target =
-        (r, g, b) = pickedColor;
-        f(z) = (z.f2.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
-        Option.map((u -> u.f2.id), List.find(f, eng.scene));
-      do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-      cont({ mousedown; x=v2.f1; z=v2.f3; ~possible_target })
+      match which_box(viewbox, pos) with
+        | {out} -> void
+        | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
+          do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
+          this_viewbox = fetch_box(viewbox, who);
+          (pMatrix, s) = drawScene_for_a_viewport(eng, who, this_viewbox, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+          x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
+          y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
+          mvMatrix = Stack.peek(s) ;
+          do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
+          do mat4.inverse(mvMatrix, mvMatrix);
+          v1 = vec4.from_public((x, y, 1.0, 1.0));
+          v2 = vec4.from_public((9.9, 9.9, 9.9, 9.9));
+          do mat4.multiplyVec4(mvMatrix, v1, v2);
+          v22 = vec4.to_public(v2);
+          //v22 = { v22 with f2=0.0 };
+          v2 = (v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4, v22.f4);
+          data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
+          do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
+          pickedColor = match Webgl.Uint8Array.to_int_list(data) with
+            | [r, g, b, _] -> (r, g, b)
+            | _ -> error("Picking failure")
+            end ;
+          do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ v2 }");
+          //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
+          possible_target =
+            (r, g, b) = pickedColor;
+            f(z) = (z.f2.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
+            Option.map((u -> u.f2.id), List.find(f, eng.scene));
+          do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
+          cont({ mousedown; x=v2.f1; z=v2.f3; ~possible_target })
+          end
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
