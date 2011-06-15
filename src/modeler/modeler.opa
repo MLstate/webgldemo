@@ -46,14 +46,14 @@ Scene = {{
 Modeler = {{
   empty(scene_url) : Modeler.modeler = { address=scene_url; scene=Scene.empty(); tool={selection} } ;
 
-  use_tool(modeler, where, possible_target)  : Modeler.modeler = 
+  tool_use(modeler, where, possible_target)  : Modeler.modeler = 
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
     match modeler.tool with
     | {add_cube} -> { modeler with scene=Scene.add_cube(modeler.scene, where) }
     | {selection} -> { modeler with scene=Scene.selection(modeler.scene, possible_target) }
     end ;
 
-  change_tool(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
+  tool_change(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
 
   scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=Scene.change_selection_color(modeler.scene, new_color) };
 
@@ -80,14 +80,14 @@ type GuiModeler.t = {
     set(state) = { set=state };
     match message with
     | {click_on_scene; ~where; ~possible_target} -> 
-      modeler = Modeler.use_tool(state.modeler, where, possible_target);
+      modeler = Modeler.tool_use(state.modeler, where, possible_target);
       if Observable.get_state(state.subjects.selection) == modeler.scene.selection then
         set_modeler(modeler)
       else
         subjects = { state.subjects with selection=Observable.change_state(modeler.scene.selection, state.subjects.selection) };
         set({ ~subjects; ~modeler })
-    | {change_tool=new_tool} ->
-      modeler = Modeler.change_tool(state.modeler, new_tool);
+    | {modeler_change_tool=new_tool} ->
+      modeler = Modeler.tool_change(state.modeler, new_tool);
       subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
       set({ ~subjects; ~modeler })
     | {modeler_change_scene_selection_color; ~new_color} ->
@@ -108,7 +108,7 @@ type GuiModeler.t = {
       { si=(-> not(Dom.is_empty(#{id_a})) && not(Dom.is_empty(#{id_b}))); ~then_do; else_autoclean };
     do Observable.register(on_tool_change, s_tool);
     menu =
-      s(x) = (_ -> Session.send(channel, {change_tool=x}));
+      s(x) = (_ -> Session.send(channel, {modeler_change_tool=x}));
       <p><a id=#{id_a} onclick={s({selection})} >.</a> | <a id=#{id_b} onclick={s({add_cube})} >.</a></p>;
     ignore(Dom.put_at_start(parent_sel, Dom.of_xhtml(menu)));
 
