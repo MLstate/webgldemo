@@ -1,13 +1,13 @@
 
 type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorFloat.color } ;
 
-type Scene.scene = { objs: list(Scene.objects); CPF: Fresh.next(patch_id) };
+type Scene.scene = { objs: list(Scene.objects); CPF: Fresh.next(hidden_id) };
 type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
 type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color } / { selection_change; possible_target: option(hidden_id) };
 
-type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene; CHF: Fresh.next(hidden_id) };
+type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene };
 
 type Modeler.tool = {selection} / {add_cube} ;
 
@@ -21,8 +21,9 @@ Scene = {{
   empty(F, client_id) : Scene.scene = { objs=List.empty; CPF=build_CPF(F, client_id) };
 
   a_little_empty(F, client_id) : Scene.scene =
-    c(pos) = {cube=pos; id=F(); color=ColorFloat.random()};
-    { empty(F, client_id) with objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+    base = empty(F, client_id);
+    c(pos) = {cube=pos; id=base.CPF(); color=ColorFloat.random()};
+    { base with objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
 
   find_object(scene : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), scene.objs);
   extract_object(scene, target_id) : (option(Scene.objects), Scene.scene) = 
@@ -34,28 +35,28 @@ Scene = {{
   add_object(scene, object) : Scene.scene = { scene with objs=List.cons(object, scene.objs) };
   reinject_object(scene, oobject : option(Scene.objects)) : Scene.scene = Option.switch((an_o -> add_object(scene, an_o)), scene, oobject);
 
-  apply_command(scene, F, command : Scene.command) : Scene.scene = match command with
-    | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=F(); color=ColorFloat.random()})
+  apply_command(scene, command : Scene.command) : Scene.scene = match command with
+    | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=scene.CPF(); color=ColorFloat.random()})
     | {change_color; ~id; ~new_color} ->
       (otarget, scene) = extract_object(scene, id);
       f(an_o) = add_object(scene, { an_o with color=new_color });
       Option.switch(f, scene, otarget)
     end ;
 
-  apply_patch(scene, F, patch : Scene.patch) : Scene.scene = apply_command(scene, F, patch.command) ;
-  apply_patchs(scene, F, patchs : list(Scene.patch)) : Scene.scene = List.fold((p, acc -> apply_patch(acc, F, p)), patchs, scene);
+  apply_patch(scene, patch : Scene.patch) : Scene.scene = apply_command(scene, patch.command) ;
+  apply_patchs(scene, patchs : list(Scene.patch)) : Scene.scene = List.fold((p, acc -> apply_patch(acc, p)), patchs, scene);
 
 }} ;
 
 `Scene.Client` = {{
 
-  @client CHF : Fresh.next(hidden_id) = Fresh.client((i -> i : hidden_id));
-
   load(scene : Scene.scene) : Scene.Client.scene =
     (selection, others) = Scene.extract_object_by_pos(scene, 0);
-    { ~selection; ~others; CHF=CHF };
+    { ~selection; ~others };
 
-  empty(client_id) : Scene.Client.scene = load(Scene.empty(CHF, client_id));
+  empty(client_id) : Scene.Client.scene = 
+    CHF : Fresh.next(int) = Fresh.client((i -> i : int));
+    load(Scene.empty(CHF, client_id));
 
   @private get_scene(scene : Scene.Client.scene) : Scene.scene = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, scene.selection);
 
@@ -89,7 +90,7 @@ Scene = {{
       do Log.debug("apply_command", "{command} \t {scene.selection}");
       f(p) =
         (selection, others) =
-          base = Scene.apply_patch(get_scene(scene), scene.CHF, p);
+          base = Scene.apply_patch(get_scene(scene), p);
           g(sel) = Scene.extract_object(base, sel.id);
           Option.switch(g, (Option.none, base), scene.selection);
         { scene with ~others; ~selection }

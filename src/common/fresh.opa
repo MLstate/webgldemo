@@ -1,7 +1,7 @@
-@abstract type hidden_id = int ;
+@abstract type hidden_id = (int, int) ;
 
-@abstract type patch_id = (int, int) ;
+type patch_id = hidden_id;
 
-build_CPF(F, client_id : int) : Fresh.next(patch_id) = (-> (F(), client_id));
+build_CPF(F : Fresh.next(int), client_id : int) : Fresh.next(hidden_id) = (-> (F(), client_id));
 
 
