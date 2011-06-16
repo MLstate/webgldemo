@@ -2,7 +2,7 @@
 type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorFloat.color } ;
 
 type Scene.scene = { objs: list(Scene.objects); CPF: Fresh.next(hidden_id) };
-type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
+type Scene.command = { add_cube; where: {x: float; y: float; z:float }; color: ColorFloat.color } / { change_color; id: hidden_id; new_color: ColorFloat.color };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
 type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color } / { selection_change; possible_target: option(hidden_id) };
@@ -36,7 +36,7 @@ Scene = {{
   reinject_object(scene, oobject : option(Scene.objects)) : Scene.scene = Option.switch((an_o -> add_object(scene, an_o)), scene, oobject);
 
   @private apply_command(scene, command : Scene.command) : Scene.scene = match command with
-    | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=scene.CPF(); color=ColorFloat.random()})
+    | {add_cube; ~where; ~color} -> add_object(scene, {cube=(where.x, where.y, where.z); id=scene.CPF(); ~color})
     | {change_color; ~id; ~new_color} ->
       (otarget, scene) = extract_object(scene, id);
       f(an_o) = add_object(scene, { an_o with color=new_color });
@@ -64,7 +64,9 @@ Scene = {{
 
   command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = 
     match cmd with
-    | { add_cube; ... } as command -> Option.some({ pid=scene.others.CPF(); ~command })
+    | { add_cube; ~where } as command -> 
+      command = { add_cube; ~where; color=ColorFloat.random() } : Scene.command;
+      Option.some({ pid=scene.others.CPF(); ~command})
     | { selection_change_color; ~new_color } -> 
       f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
       Option.map(f, scene.selection)
