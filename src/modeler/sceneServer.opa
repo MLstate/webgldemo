@@ -44,9 +44,8 @@ type Central.Modelers.sync.message = { load: Scene.scene };
     end;
 
   update_file(state, address, f) : Central.Modelers.state =
-    f(modsha) = 
-      { state with files=StringMap.add(address, f(modsha), state.files) };
-    Option.switch(f, state, find_file(state, address));
+    modsha = get_file(state, address);
+    { state with files=StringMap.add(address, f(modsha), state.files) };
 
   apply_patch(state, address, patch) : Central.Modelers.state =
     f(modsha) = `Modeler.Shared`.apply_patch(modsha, patch);
@@ -58,7 +57,8 @@ type Central.Modelers.sync.message = { load: Scene.scene };
   on_message(state : Central.Modelers.state, message) = match message with
     | { register; ~scene_url; ~sync_channel; ~client_id } ->
       do Log.info("CM", "register for url '{scene_url}'");
-      base = `Central.Modelers`.get_file(state, scene_url);
-      base = `Modeler.Shared`.add_client(base, sync_channel);
-      { unchanged };
+      state = 
+        up(modsha) = `Modeler.Shared`.add_client(modsha, sync_channel);
+        `Central.Modelers`.update_file(state, scene_url, up);
+      { set=state };
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);
