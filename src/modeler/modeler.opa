@@ -5,7 +5,7 @@ type Scene.scene = { objs: list(Scene.objects); CPF: Fresh.next(patch_id) };
 type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
-type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color };
+type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color } / { selection_change; possible_target: option(hidden_id) };
 
 type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene };
 
@@ -71,12 +71,17 @@ Scene = {{
     | { selection_change_color; ~new_color } -> 
       f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
       Option.map(f, scene.selection)
+    | { selection_change; ... } -> Option.none
     end;
 
-  apply_command(scene, command : Scene.Client.command) : Scene.Client.scene = 
-    Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, command));
+  apply_command(scene, command : Scene.Client.command) : Scene.Client.scene = match command with
+    | { selection_change; ~possible_target } -> Scene.selection_change(scene, possible_target)
+    | _ -> Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, command))
+    end ;
     
   others_add_cube(scene, where) : Scene.Client.scene = apply_command(scene, {add_cube; ~where});
+
+  selection_change(scene, possible_target) : Scene.Client.scene = apply_command(scene, {selection_change; ~possible_target});
 
   selection_change_color(scene, new_color) : Scene.Client.scene = apply_command(scene, {selection_change_color; ~new_color});
     
@@ -89,7 +94,7 @@ Modeler = {{
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
     match modeler.tool with
     | {add_cube} -> { modeler with scene=`Scene.Client`.others_add_cube(modeler.scene, where) }
-    | {selection} -> { modeler with scene=Scene.selection_change(modeler.scene, possible_target) }
+    | {selection} -> { modeler with scene=`Scene.Client`.selection_change(modeler.scene, possible_target) }
     end ;
 
   tool_change(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
