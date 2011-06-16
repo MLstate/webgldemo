@@ -62,10 +62,10 @@ Scene = {{
     | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
     end ;
 
-  command_to_scene_patch(scene, CPF, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
-    | { add_cube; ... } as command -> Option.some({ pid=CPF(); ~command })
+  command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
+    | { add_cube; ... } as command -> Option.some({ pid=scene.others.CPF(); ~command })
     | { selection_change_color; ~new_color } -> 
-      f(sel) = { pid=CPF(); command={ change_color; id=sel.id ; ~new_color } };
+      f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
       Option.map(f, scene.selection)
     end;
     
