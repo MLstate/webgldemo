@@ -22,9 +22,9 @@ Scene = {{
     c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
     [ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ];
 
-  find_object(objects, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), objects);
-  extract_object(objects, target_id) : (option(Scene.objects), list(Scene.objects)) = List.extract_p((z -> z.id == target_id), objects);
-  add_object(objects, object) : list(Scene.objects) = List.cons(object, objects);
+  find_object(objects : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), objects);
+  extract_object(objects, target_id) : (option(Scene.objects), Scene.scene) = List.extract_p((z -> z.id == target_id), objects);
+  add_object(objects, object) : Scene.scene = List.cons(object, objects);
 
   selection_change_color(scene, new_color) : Scene.Client.scene = 
     match scene.selection with
