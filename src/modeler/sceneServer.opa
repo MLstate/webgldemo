@@ -15,13 +15,13 @@ type Modeler.Shared.modeler = {
 }}
 
 
-type Central.Modelers.state = stringmap(Modeler.Shared.modeler);
+type Central.Modelers.state = { my_id: int; files: stringmap(Modeler.Shared.modeler) };
 type Central.Modelers.message = { register; scene_url: string; sync_channel: channel(Central.Modelers.sync.message); client_id: int };
 
 type Central.Modelers.sync.message = { load: Scene.scene };
 
 @server `Central.Modelers` = {{
-  empty() : Central.Modelers.state = StringMap.empty;
+  empty() : Central.Modelers.state = { my_id=SHF(); files=StringMap.empty };
 
 }}
 
@@ -29,6 +29,10 @@ type Central.Modelers.sync.message = { load: Scene.scene };
   on_message(state, message) = match message with
     | { register; ~scene_url; ~sync_channel; ~client_id } ->
       do Log.info("CM", "register for url '{scene_url}'");
-      do Session.send(sync_channel, { load=Scene.a_little_empty(SHF, client_id) });
+      base = Scene.empty(SHF, state.my_id);
+      base = Scene.add_object(base, Scene.cube(base, (0.0, 0.0, -3.0)));
+      base = Scene.add_object(base, Scene.cube(base, (3.0, 0.0, 0.0)));
+      base = Scene.add_object(base, Scene.cube(base, (6.0, 0.0, 0.0)));
+      do Session.send(sync_channel, { load=base });
       { unchanged };
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);

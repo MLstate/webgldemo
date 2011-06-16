@@ -23,10 +23,7 @@ Scene = {{
 
   CPF_change(scene, F, client_id) : Scene.scene = { scene with CPF=build_CPF(F, client_id) };
 
-  a_little_empty(F, client_id) : Scene.scene =
-    base = empty(F, client_id);
-    c(pos) = {cube=pos; id=base.CPF(); color=ColorFloat.random()};
-    { base with objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+  cube(scene, pos) = {cube=pos; id=scene.CPF(); color=ColorFloat.random()};
 
   find_object(scene : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), scene.objs);
   extract_object(scene, target_id) : (option(Scene.objects), Scene.scene) = 
