@@ -1,12 +1,13 @@
 
 type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorFloat.color } ;
 
+type Scene.scene = list(Scene.objects);
 type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
 type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color };
 
-type Scene.Client.scene = { selection: option(Scene.objects); others: list(Scene.objects) };
+type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene };
 
 type Modeler.tool = {selection} / {add_cube} ;
 
@@ -17,9 +18,9 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{
-  empty() : Scene.Client.scene =
+  empty() : Scene.scene =
     c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
-    { selection=Option.some(c((0.0, 0.0, -3.0))); others=[ c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+    [ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ];
 
   find_object(objects, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), objects);
   extract_object(objects, target_id) : (option(Scene.objects), list(Scene.objects)) = List.extract_p((z -> z.id == target_id), objects);
@@ -49,6 +50,13 @@ Scene = {{
 }} ;
 
 `Scene.Client` = {{
+
+  load(scene : Scene.scene) : Scene.Client.scene =
+    (selection, others) = List.extract(0, scene);
+    { ~selection; ~others };
+
+  empty() : Scene.Client.scene = load(Scene.empty());
+
   command_to_scene_patch(scene, CPF, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
     | { add_cube; ... } as command -> Option.some({ pid=CPF(); ~command })
     | { selection_change_color; ~new_color } -> 
@@ -59,7 +67,7 @@ Scene = {{
 }} ;
 
 Modeler = {{
-  empty(scene_url) : Modeler.modeler = { address=scene_url; scene=Scene.empty(); tool={selection} } ;
+  empty(scene_url) : Modeler.modeler = { address=scene_url; scene=`Scene.Client`.empty(); tool={selection} } ;
 
   tool_use(modeler, where, possible_target)  : Modeler.modeler = 
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
