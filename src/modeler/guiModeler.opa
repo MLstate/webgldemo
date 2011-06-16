@@ -30,7 +30,7 @@ type GuiModeler.t = {
     set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
     match message with
     | {click_on_scene; ~where; ~possible_target} -> 
-      modeler = Modeler.tool_use(state.modeler, where, possible_target);
+      (modeler, opatch) = Modeler.tool_use(state.modeler, where, possible_target);
       if Observable.get_state(state.subjects.selection.this) == modeler.scene.selection then
         set_modeler(modeler)
       else
@@ -42,7 +42,7 @@ type GuiModeler.t = {
       subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
       set({ ~subjects; ~modeler })
     | {modeler_change_scene_selection_color; ~new_color} ->
-      modeler = Modeler.scene_change_selection_color(state.modeler, new_color);
+      (modeler, opatch) = Modeler.scene_change_selection_color(state.modeler, new_color);
       subjects = { state.subjects with selection.color=Observable.change_state(new_color, state.subjects.selection.color) };
       set({ ~subjects; ~modeler})
     end ;

@@ -84,9 +84,9 @@ Scene = {{
       { scene with selection=new_sel; ~others }
     end ;
 
-  apply_command(scene, command : Scene.Client.command) : Scene.Client.scene =
+  apply_command(scene, command : Scene.Client.command) : (Scene.Client.scene, option(Scene.patch)) =
     match command with
-    | { selection_change; ~possible_target } -> selection_change_low(scene, possible_target)
+    | { selection_change; ~possible_target } -> (selection_change_low(scene, possible_target), Option.none)
     | _ -> 
       command = command_to_scene_patch(scene, command);
       do Log.debug("apply_command", "{command} \t {scene.selection}");
@@ -96,14 +96,14 @@ Scene = {{
           g(sel) = Scene.extract_object(base, sel.id);
           Option.switch(g, (Option.none, base), scene.selection);
         { scene with ~others; ~selection }
-      Option.switch(f, scene, command)
+      (Option.switch(f, scene, command), command)
     end ;
     
-  others_add_cube(scene, where) : Scene.Client.scene = apply_command(scene, {add_cube; ~where});
+  others_add_cube(scene, where) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {add_cube; ~where});
 
-  selection_change(scene, possible_target) : Scene.Client.scene = apply_command(scene, {selection_change; ~possible_target});
+  selection_change(scene, possible_target) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change; ~possible_target});
 
-  selection_change_color(scene, new_color) : Scene.Client.scene = apply_command(scene, {selection_change_color; ~new_color});
+  selection_change_color(scene, new_color) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change_color; ~new_color});
     
 }} ;
 
@@ -111,16 +111,22 @@ Modeler = {{
   load(scene, scene_url, client_id) : Modeler.modeler = { address=scene_url; ~scene; tool={selection}; ~client_id } ;
   empty(scene_url, client_id) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id);
 
-  tool_use(modeler, where, possible_target)  : Modeler.modeler = 
+  tool_use(modeler, where, possible_target) : (Modeler.modeler, option(Scene.patch)) =
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
     match modeler.tool with
-    | {add_cube} -> { modeler with scene=`Scene.Client`.others_add_cube(modeler.scene, where) }
-    | {selection} -> { modeler with scene=`Scene.Client`.selection_change(modeler.scene, possible_target) }
+    | {add_cube} -> 
+      (scene, opatch) = `Scene.Client`.others_add_cube(modeler.scene, where);
+      ({ modeler with ~scene }, opatch)
+    | {selection} -> 
+      (scene, opatch) = `Scene.Client`.selection_change(modeler.scene, possible_target);
+      ({ modeler with ~scene }, opatch)
     end ;
 
   tool_change(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
 
-  scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=`Scene.Client`.selection_change_color(modeler.scene, new_color) };
+  scene_change_selection_color(modeler, new_color) : (Modeler.modeler, option(Scene.patch)) = 
+    (scene, opatch) = `Scene.Client`.selection_change_color(modeler.scene, new_color);
+    ({ modeler with ~scene }, opatch);
 
 }} ;
 
