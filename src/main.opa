@@ -24,7 +24,7 @@ server_modeler_static_page(scene_url) =
   width = 500;
   height = 500;
   <div>
-    <div id=#{id_gui_area} onready={_ -> GuiModeler.init(scene_url, #{id_gui_area}, width, height)}/>
+    <div id=#{id_gui_area} onready={_ -> GuiModeler.init(scene_url, SHF(), #{id_gui_area}, width, height)}/>
     <div id=#{id_work_area} />
   </div> ;
 

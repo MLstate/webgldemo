@@ -5,10 +5,12 @@ type Modeler.Shared.modeler = {
   clients: list(void)
 } ;
 
+@server SHF : Fresh.next(int) = Fresh.server((i -> i : int));
+
 @server `Modeler.Shared` = {{
 
   empty(server_id) : Modeler.Shared.modeler = 
-    { scene=Scene.empty(server_id); address=Random.string(8); clients=List.empty };
+    { scene=Scene.empty(SHF, server_id); address=Random.string(8); clients=List.empty };
 
 }}
 

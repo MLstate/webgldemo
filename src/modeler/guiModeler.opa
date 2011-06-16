@@ -87,13 +87,12 @@ type GuiModeler.t = {
     ignore(Dom.put_at_end(parent_sel, Dom.of_xhtml(sel)));
 
   
-  init(scene_url, parent_sel:dom, width, height) : void =
+  init(scene_url, client_id, parent_sel:dom, width, height) : void =
     id_canvas_canvas = "canvas_canvas" ;
     fail_msg = 
       <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
     and_do(_) =
       (channel, get_scene, get_subjects) =
-        client_id = Random.int(777);
         (channel, sync_channel, get_state) = SessionExt.make_2_side(empty(scene_url, client_id), on_message, Sync.on_message);
         do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
         (channel, (-> get_state().modeler.scene), (->get_state().subjects)) ;

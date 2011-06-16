@@ -18,11 +18,11 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{
-  empty(client_id) : Scene.scene = { objs=List.empty; CPF=build_CPF(client_id) };
+  empty(F, client_id) : Scene.scene = { objs=List.empty; CPF=build_CPF(F, client_id) };
 
   a_little_empty(F, client_id) : Scene.scene =
     c(pos) = {cube=pos; id=F(); color=ColorFloat.random()};
-    { empty(client_id) with objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+    { empty(F, client_id) with objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
 
   find_object(scene : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), scene.objs);
   extract_object(scene, target_id) : (option(Scene.objects), Scene.scene) = 
@@ -49,11 +49,13 @@ Scene = {{
 
 `Scene.Client` = {{
 
+  @client CHF : Fresh.next(hidden_id) = Fresh.client((i -> i : hidden_id));
+
   load(scene : Scene.scene) : Scene.Client.scene =
     (selection, others) = Scene.extract_object_by_pos(scene, 0);
     { ~selection; ~others; CHF=CHF };
 
-  empty(client_id) : Scene.Client.scene = load(Scene.empty(client_id));
+  empty(client_id) : Scene.Client.scene = load(Scene.empty(CHF, client_id));
 
   @private get_scene(scene : Scene.Client.scene) : Scene.scene = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, scene.selection);
 
