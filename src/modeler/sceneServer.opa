@@ -23,16 +23,23 @@ type Central.Modelers.sync.message = { load: Scene.scene };
 @server `Central.Modelers` = {{
   empty() : Central.Modelers.state = { my_id=SHF(); files=StringMap.empty };
 
+  find_file(state, address) = StringMap.get(address, state.files);
+
 }}
 
 @server central_modelers : channel(Central.Modelers.message) =
-  on_message(state, message) = match message with
+  on_message(state : Central.Modelers.state, message) = match message with
     | { register; ~scene_url; ~sync_channel; ~client_id } ->
       do Log.info("CM", "register for url '{scene_url}'");
-      base = Scene.empty(SHF, state.my_id);
-      base = Scene.add_object(base, Scene.cube(base, (0.0, 0.0, -3.0)));
-      base = Scene.add_object(base, Scene.cube(base, (3.0, 0.0, 0.0)));
-      base = Scene.add_object(base, Scene.cube(base, (6.0, 0.0, 0.0)));
-      do Session.send(sync_channel, { load=base });
+      base = match `Central.Modelers`.find_file(state, scene_url) with
+        | {some=hit} -> hit
+        | {none} ->
+          scene = Scene.empty(SHF, state.my_id);
+          scene = Scene.add_object(scene, Scene.cube(scene, (0.0, 0.0, -3.0)));
+          scene = Scene.add_object(scene, Scene.cube(scene, (3.0, 0.0, 0.0)));
+          scene = Scene.add_object(scene, Scene.cube(scene, (6.0, 0.0, 0.0)));
+          { `Modeler.Shared`.empty(state.my_id) with ~scene }
+        end;
+      do Session.send(sync_channel, { load=base.scene });
       { unchanged };
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);
