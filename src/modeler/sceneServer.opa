@@ -2,7 +2,7 @@
 type Modeler.Shared.modeler = {
   scene: Scene.scene;
   address: string;
-  clients: list(Central.Modelers.sync.message)
+  clients: list(channel(Central.Modelers.sync.message))
 } ;
 
 @server SHF : Fresh.next(int) = Fresh.server((i -> i : int));
@@ -12,10 +12,11 @@ type Modeler.Shared.modeler = {
   empty(server_id, address) : Modeler.Shared.modeler = 
     { scene=Scene.empty(SHF, server_id); ~address; clients=List.empty };
 
-  add_client(modsha, client) = 
-    { modsha with clients=List.cons(client, modsha.client) };
+  add_client(modsha, client) : Modeler.Shared.modeler =
+    do Session.send(client, { load=modsha.scene });
+    { modsha with clients=List.cons(client, modsha.clients) };
 
-  apply_patch(modsha, patch) = 
+  apply_patch(modsha, patch) : Modeler.Shared.modeler = 
     do Log.info("Modeler.Shared", "a patch as been apply for address '{modsha.address}'");
     { modsha with scene=Scene.apply_patch(modsha.scene, patch) };
 
@@ -32,6 +33,16 @@ type Central.Modelers.sync.message = { load: Scene.scene };
 
   find_file(state, address) = StringMap.get(address, state.files);
 
+  get_file(state, address) : Modeler.Shared.modeler = match find_file(state, address) with
+    | {some=hit} -> hit
+    | {none} ->
+      scene = Scene.empty(SHF, state.my_id);
+      scene = Scene.add_object(scene, Scene.cube(scene, (0.0, 0.0, -3.0)));
+      scene = Scene.add_object(scene, Scene.cube(scene, (3.0, 0.0, 0.0)));
+      scene = Scene.add_object(scene, Scene.cube(scene, (6.0, 0.0, 0.0)));
+      { `Modeler.Shared`.empty(state.my_id, address) with ~scene }
+    end;
+
   update_file(state, address, f) : Central.Modelers.state =
     f(modsha) = 
       { state with files=StringMap.add(address, f(modsha), state.files) };
@@ -47,15 +58,7 @@ type Central.Modelers.sync.message = { load: Scene.scene };
   on_message(state : Central.Modelers.state, message) = match message with
     | { register; ~scene_url; ~sync_channel; ~client_id } ->
       do Log.info("CM", "register for url '{scene_url}'");
-      base = match `Central.Modelers`.find_file(state, scene_url) with
-        | {some=hit} -> hit
-        | {none} ->
-          scene = Scene.empty(SHF, state.my_id);
-          scene = Scene.add_object(scene, Scene.cube(scene, (0.0, 0.0, -3.0)));
-          scene = Scene.add_object(scene, Scene.cube(scene, (3.0, 0.0, 0.0)));
-          scene = Scene.add_object(scene, Scene.cube(scene, (6.0, 0.0, 0.0)));
-          { `Modeler.Shared`.empty(state.my_id, scene_url) with ~scene }
-        end;
-      do Session.send(sync_channel, { load=base.scene });
+      base = `Central.Modelers`.get_file(state, scene_url);
+      base = `Modeler.Shared`.add_client(base, sync_channel);
       { unchanged };
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);
