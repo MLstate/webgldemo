@@ -43,19 +43,6 @@ Scene = {{
   apply_patch(scene, patch : Scene.patch) : Scene.scene = apply_command(scene, patch.command) ;
   apply_patchs(scene, patchs : list(Scene.patch)) : Scene.scene = List.fold((p, acc -> apply_patch(acc, p)), patchs, scene);
 
-  selection_change(scene, possible_target) : Scene.Client.scene =
-    match (possible_target, scene.selection) with
-    | ({none}, {none}) -> scene
-    | ({none}, {~some}) -> { selection=Option.none; others=Scene.add_object(scene.others, some) }
-    | ({~some}, osel) -> 
-      //we put back the sel with others
-      others = Option.switch((sel -> add_object(scene.others, sel)), scene.others, osel);
-      //we retrieve the new sel
-      (new_sel, others) = extract_object(others, some);
-      do if Option.is_none(new_sel) then Log.error("Scene", "a selection failed to find the corresponding object");
-      { selection=new_sel; ~others }
-    end ;
-
 }} ;
 
 `Scene.Client` = {{
@@ -66,7 +53,10 @@ Scene = {{
 
   empty() : Scene.Client.scene = load(Scene.empty(Random.int(99)));
 
-  command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
+  @private get_scene(scene : Scene.Client.scene) : Scene.scene = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, scene.selection);
+
+  command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = 
+    match cmd with
     | { add_cube; ... } as command -> Option.some({ pid=scene.others.CPF(); ~command })
     | { selection_change_color; ~new_color } -> 
       f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
@@ -74,9 +64,32 @@ Scene = {{
     | { selection_change; ... } -> Option.none
     end;
 
-  apply_command(scene, command : Scene.Client.command) : Scene.Client.scene = match command with
-    | { selection_change; ~possible_target } -> Scene.selection_change(scene, possible_target)
-    | _ -> Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, command))
+  selection_change_low(scene, possible_target) : Scene.Client.scene =
+    match (possible_target, scene.selection) with
+    | ({none}, {none}) -> scene
+    | ({none}, {~some}) -> { selection=Option.none; others=Scene.add_object(scene.others, some) }
+    | ({~some}, osel) -> 
+      //we put back the sel with others
+      others = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, osel);
+      //we retrieve the new sel
+      (new_sel, others) = Scene.extract_object(others, some);
+      do if Option.is_none(new_sel) then Log.error("Scene", "a selection failed to find the corresponding object");
+      { selection=new_sel; ~others }
+    end ;
+
+  apply_command(scene, command : Scene.Client.command) : Scene.Client.scene =
+    match command with
+    | { selection_change; ~possible_target } -> selection_change_low(scene, possible_target)
+    | _ -> 
+      command = command_to_scene_patch(scene, command);
+      do Log.debug("apply_command", "{command} \t {scene.selection}");
+      f(p) =
+        (selection, others) =
+          base = Scene.apply_patch(get_scene(scene), p);
+          g(sel) = Scene.extract_object(base, sel.id);
+          Option.switch(g, (Option.none, base), scene.selection);
+        { scene with ~others; ~selection }
+      Option.switch(f, scene, command)
     end ;
     
   others_add_cube(scene, where) : Scene.Client.scene = apply_command(scene, {add_cube; ~where});
