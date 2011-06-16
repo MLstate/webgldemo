@@ -4,7 +4,9 @@ type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorF
 type Scene.scene = { selection: option(Scene.objects); others: list(Scene.objects) };
 
 type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
-type Scene.path = { pid: patch_id;  command: Scene.command };
+type Scene.patch = { pid: patch_id;  command: Scene.command };
+
+type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color };
 
 type Modeler.tool = {selection} / {add_cube} ;
 
@@ -44,6 +46,16 @@ Scene = {{
       { selection=new_sel; ~others }
     end ;
 
+}} ;
+
+`Scene.Client` = {{
+  command_to_scene_patch(scene, CPF, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
+    | { add_cube; ... } as command -> Option.some({ pid=CPF(); ~command })
+    | { selection_change_color; ~new_color } -> 
+      f(sel) = { pid=CPF(); command={ change_color; id=sel.id ; ~new_color } };
+      Option.map(f, scene.selection)
+    end;
+    
 }} ;
 
 Modeler = {{
