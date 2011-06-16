@@ -24,7 +24,9 @@ type Modeler.Shared.modeler = {
 
 
 type Central.Modelers.state = { my_id: int; files: stringmap(Modeler.Shared.modeler) };
-type Central.Modelers.message = { register; scene_url: string; sync_channel: channel(Central.Modelers.sync.message); client_id: int };
+type Central.Modelers.message = 
+  { register; scene_url: string; sync_channel: channel(Central.Modelers.sync.message); client_id: int }
+/ { apply_patch; patch: Scene.patch; address: string };
 
 type Central.Modelers.sync.message = { load: Scene.scene };
 
@@ -60,5 +62,9 @@ type Central.Modelers.sync.message = { load: Scene.scene };
       state = 
         up(modsha) = `Modeler.Shared`.add_client(modsha, sync_channel);
         `Central.Modelers`.update_file(state, scene_url, up);
-      { set=state };
+      { set=state }
+    | { apply_patch; ~patch; ~address } ->
+      state = `Central.Modelers`.apply_patch(state, address, patch);
+      { set=state }
+    end;
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);
