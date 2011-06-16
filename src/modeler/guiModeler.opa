@@ -15,7 +15,7 @@ type GuiModeler.t = {
 
   @private on_message(state : GuiModeler.t, message) = 
     set_modeler(modeler) = { set={ state with ~modeler } } ;
-    set_subjects(subjects) = { set={ state with ~subjects } } ;
+    _set_subjects(subjects) = { set={ state with ~subjects } } ;
     set(state) = { set=state };
     match message with
     | {click_on_scene; ~where; ~possible_target} -> 
@@ -58,7 +58,7 @@ type GuiModeler.t = {
     do
       f(some_selection) = match some_selection with
         | {none} -> <></>
-        | {~some} ->
+        | {some=_} ->
           id = Random.string(7);
           do
             c(a_color) = Color.color_to_string(a_color);
