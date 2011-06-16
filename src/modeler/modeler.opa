@@ -64,7 +64,7 @@ Scene = {{
 
   command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = 
     match cmd with
-    | { add_cube; ~where } as command -> 
+    | { add_cube; ~where } -> 
       command = { add_cube; cube={ cube=(where.x, where.y, where.z); color=ColorFloat.random(); id=scene.others.CPF() } } : Scene.command;
       Option.some({ pid=scene.others.CPF(); ~command})
     | { selection_change_color; ~new_color } -> 
