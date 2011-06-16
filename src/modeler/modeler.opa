@@ -1,7 +1,7 @@
 
 type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorFloat.color } ;
 
-type Scene.scene = { objs: list(Scene.objects) };
+type Scene.scene = { objs: list(Scene.objects); CPF: Fresh.next(patch_id) };
 type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
@@ -18,9 +18,9 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{
-  empty() : Scene.scene =
+  empty(client_id) : Scene.scene =
     c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
-    { objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
+    { objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ]; CPF=build_CPF(client_id) };
 
   find_object(scene : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), scene.objs);
   extract_object(scene, target_id) : (option(Scene.objects), Scene.scene) = 
@@ -60,7 +60,7 @@ Scene = {{
     (selection, others) = Scene.extract_object_by_pos(scene, 0);
     { ~selection; ~others };
 
-  empty() : Scene.Client.scene = load(Scene.empty());
+  empty() : Scene.Client.scene = load(Scene.empty(Random.int(99)));
 
   command_to_scene_patch(scene, CPF, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
     | { add_cube; ... } as command -> Option.some({ pid=CPF(); ~command })
