@@ -222,7 +222,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
         end;
       scene : engine.scene =
         tmp = get_scene();
-        others_scene = List.map(f(false, _), tmp.others);
+        others_scene = List.map(f(false, _), tmp.others.objs);
         selection_scene = Option.switch((the -> [ f(true, the) ]), List.empty, tmp.selection);
         List.append(selection_scene, others_scene);
       ({ eng with ~scene }, scene);

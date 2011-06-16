@@ -1,7 +1,7 @@
 
 type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorFloat.color } ;
 
-type Scene.scene = list(Scene.objects);
+type Scene.scene = { objs: list(Scene.objects) };
 type Scene.command = { add_cube; where: {x: float; y: float; z:float } } / { change_color; id: hidden_id; new_color: ColorFloat.color };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
@@ -14,17 +14,22 @@ type Modeler.tool = {selection} / {add_cube} ;
 type Modeler.modeler = {
   address: string;
   scene: Scene.Client.scene;
-  tool: Modeler.tool
+  tool: Modeler.tool;
 } ;
 
 Scene = {{
   empty() : Scene.scene =
     c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
-    [ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ];
+    { objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
 
-  find_object(objects : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), objects);
-  extract_object(objects, target_id) : (option(Scene.objects), Scene.scene) = List.extract_p((z -> z.id == target_id), objects);
-  add_object(objects, object) : Scene.scene = List.cons(object, objects);
+  find_object(scene : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), scene.objs);
+  extract_object(scene, target_id) : (option(Scene.objects), Scene.scene) = 
+    (target, rest) = List.extract_p((z -> z.id == target_id), scene.objs);
+    (target, { scene with objs=rest });
+  extract_object_by_pos(scene, nth) : (option(Scene.objects), Scene.scene) = 
+    (target, rest) = List.extract(nth, scene.objs);
+    (target, { scene with objs=rest });
+  add_object(scene, object) : Scene.scene = { scene with objs=List.cons(object, scene.objs) };
 
   selection_change_color(scene, new_color) : Scene.Client.scene = 
     match scene.selection with
@@ -32,17 +37,17 @@ Scene = {{
     | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
     end ;
 
-  others_add_cube(scene, where) : Scene.Client.scene = { scene with others=List.cons({cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}, scene.others) };
+  others_add_cube(scene, where) : Scene.Client.scene = { scene with others=Scene.add_object(scene.others, {cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}) };
 
   selection_change(scene, possible_target) : Scene.Client.scene =
     match (possible_target, scene.selection) with
     | ({none}, {none}) -> scene
-    | ({none}, {~some}) -> { selection=Option.none; others=List.cons(some, scene.others) }
+    | ({none}, {~some}) -> { selection=Option.none; others=Scene.add_object(scene.others, some) }
     | ({~some}, osel) -> 
       //we put back the sel with others
-      others = Option.switch((sel -> List.cons(sel, scene.others)), scene.others, osel);
+      others = Option.switch((sel -> add_object(scene.others, sel)), scene.others, osel);
       //we retrieve the new sel
-      (new_sel, others) = List.extract_p((elt -> elt.id == some), others);
+      (new_sel, others) = extract_object(others, some);
       do if Option.is_none(new_sel) then Log.error("Scene", "a selection failed to find the corresponding object");
       { selection=new_sel; ~others }
     end ;
@@ -52,7 +57,7 @@ Scene = {{
 `Scene.Client` = {{
 
   load(scene : Scene.scene) : Scene.Client.scene =
-    (selection, others) = List.extract(0, scene);
+    (selection, others) = Scene.extract_object_by_pos(scene, 0);
     { ~selection; ~others };
 
   empty() : Scene.Client.scene = load(Scene.empty());
