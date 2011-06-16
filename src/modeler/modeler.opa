@@ -66,20 +66,18 @@ Scene = {{
 
   empty() : Scene.Client.scene = load(Scene.empty(Random.int(99)));
 
-  others_add_cube(scene, where) : Scene.Client.scene = { scene with others=Scene.add_object(scene.others, {cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}) };
-
-  selection_change_color(scene, new_color) : Scene.Client.scene = 
-    match scene.selection with
-    | {none} -> scene
-    | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
-    end ;
-
   command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
     | { add_cube; ... } as command -> Option.some({ pid=scene.others.CPF(); ~command })
     | { selection_change_color; ~new_color } -> 
       f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
       Option.map(f, scene.selection)
     end;
+
+  others_add_cube(scene, where) : Scene.Client.scene =
+    Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, {add_cube; ~where}));
+
+  selection_change_color(scene, new_color) : Scene.Client.scene = 
+    Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, {selection_change_color; ~new_color}));
     
 }} ;
 
