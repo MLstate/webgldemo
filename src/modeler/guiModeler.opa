@@ -15,7 +15,13 @@ type GuiModeler.t = {
       match message : Central.Modelers.sync.message with
       | {load=a_scene} -> 
         modeler = Modeler.load(`Scene.Client`.load(a_scene, state.modeler.client_id), state.modeler.address, state.modeler.client_id);
-        set_modeler(modeler)
+        subjects = 
+          { state.subjects with selection={ 
+              this=Observable.change_state(modeler.scene.selection, state.subjects.selection.this); 
+              color=
+                tmp = Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection);
+                Observable.change_state(tmp , state.subjects.selection.color) } };
+        set({ ~subjects; ~modeler })
       | { write_patch; ~patch } -> 
         modeler = Modeler.write_patch(state.modeler, patch);
         set_modeler(modeler)
