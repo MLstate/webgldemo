@@ -15,10 +15,13 @@ type Modeler.modeler = {
   address: string;
   scene: Scene.Client.scene;
   tool: Modeler.tool;
+  client_id: int
 } ;
 
 Scene = {{
   empty(F, client_id) : Scene.scene = { objs=List.empty; CPF=build_CPF(F, client_id) };
+
+  CPF_change(scene, F, client_id) : Scene.scene = { scene with CPF=build_CPF(F, client_id) };
 
   a_little_empty(F, client_id) : Scene.scene =
     base = empty(F, client_id);
@@ -50,13 +53,15 @@ Scene = {{
 
 `Scene.Client` = {{
 
-  load(scene : Scene.scene) : Scene.Client.scene =
+  @private @client CHF : Fresh.next(int) = Fresh.client((i -> i : int));
+
+  load(scene : Scene.scene, client_id) : Scene.Client.scene =
+    scene = Scene.CPF_change(scene, CHF, client_id);
     (selection, others) = Scene.extract_object_by_pos(scene, 0);
     { ~selection; ~others };
 
   empty(client_id) : Scene.Client.scene = 
-    CHF : Fresh.next(int) = Fresh.client((i -> i : int));
-    load(Scene.empty(CHF, client_id));
+    load(Scene.empty(CHF, client_id), client_id);
 
   @private get_scene(scene : Scene.Client.scene) : Scene.scene = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, scene.selection);
 
@@ -106,7 +111,8 @@ Scene = {{
 }} ;
 
 Modeler = {{
-  empty(scene_url, client_id) : Modeler.modeler = { address=scene_url; scene=`Scene.Client`.empty(client_id); tool={selection} } ;
+  load(scene, scene_url, client_id) : Modeler.modeler = { address=scene_url; ~scene; tool={selection}; ~client_id } ;
+  empty(scene_url, client_id) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id);
 
   tool_use(modeler, where, possible_target)  : Modeler.modeler = 
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");

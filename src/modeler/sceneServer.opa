@@ -29,6 +29,6 @@ type Central.Modelers.sync.message = { load: Scene.scene };
   on_message(state, message) = match message with
     | { register; ~scene_url; ~sync_channel; ~client_id } ->
       do Log.info("CM", "register for url '{scene_url}'");
-      do Session.send(sync_channel, { load=Scene.a_little_empty((-> 777), client_id) });
+      do Session.send(sync_channel, { load=Scene.a_little_empty(SHF, client_id) });
       { unchanged };
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);
