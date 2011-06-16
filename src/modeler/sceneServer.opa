@@ -62,7 +62,7 @@ type Central.Modelers.sync.message =
 
 @server central_modelers : channel(Central.Modelers.message) =
   on_message(state : Central.Modelers.state, message) = match message with
-    | { register; ~scene_url; ~sync_channel; ~client_id } ->
+    | { register; ~scene_url; ~sync_channel; client_id=_ } ->
       do Log.info("CM", "register for url '{scene_url}'");
       state = 
         up(modsha) = `Modeler.Shared`.add_client(modsha, sync_channel);
