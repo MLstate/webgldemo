@@ -18,6 +18,9 @@ type Modeler.Shared.modeler = {
 
   apply_patch(modsha, patch) : Modeler.Shared.modeler = 
     do Log.info("Modeler.Shared", "a patch as been apply for address '{modsha.address}'");
+    do 
+      f(c) = Session.send(c, { write_patch; ~patch});
+      List.iter(f, modsha.clients);
     { modsha with scene=Scene.apply_patch(modsha.scene, patch) };
 
 }}
