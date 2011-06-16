@@ -231,7 +231,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
       match which_box(viewbox, pos) with
         | {out} -> void
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
-          do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
+          //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
           this_viewbox = fetch_box(viewbox, who);
           (pMatrix, s) = drawScene_for_a_viewport(eng, who, this_viewbox, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
           x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
