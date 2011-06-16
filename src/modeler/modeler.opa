@@ -30,6 +30,18 @@ Scene = {{
     (target, rest) = List.extract(nth, scene.objs);
     (target, { scene with objs=rest });
   add_object(scene, object) : Scene.scene = { scene with objs=List.cons(object, scene.objs) };
+  reinject_object(scene, oobject : option(Scene.objects)) : Scene.scene = Option.switch((an_o -> add_object(scene, an_o)), scene, oobject);
+
+  apply_command(scene, command : Scene.command) : Scene.scene = match command with
+    | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()})
+    | {change_color; ~id; ~new_color} ->
+      (otarget, scene) = extract_object(scene, id);
+      f(an_o) = add_object(scene, { an_o with color=new_color });
+      Option.switch(f, scene, otarget)
+    end ;
+
+  apply_patch(scene, patch : Scene.patch) : Scene.scene = apply_command(scene, patch.command) ;
+  apply_patchs(scene, patchs : list(Scene.patch)) : Scene.scene = List.fold((p, acc -> apply_patch(acc, p)), patchs, scene);
 
   selection_change(scene, possible_target) : Scene.Client.scene =
     match (possible_target, scene.selection) with
