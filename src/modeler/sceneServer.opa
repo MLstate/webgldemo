@@ -13,7 +13,11 @@ type Modeler.Shared.modeler = {
     { scene=Scene.empty(SHF, server_id); ~address; clients=List.empty };
 
   add_client(modsha, client) = 
-    { modsha with clients=List.cons(client, modsha.client) };  
+    { modsha with clients=List.cons(client, modsha.client) };
+
+  apply_patch(modsha, patch) = 
+    do Log.info("Modeler.Shared", "a patch as been apply for address '{modsha.address}'");
+    { modsha with scene=Scene.apply_patch(modsha.scene, patch) };
 
 }}
 
@@ -27,6 +31,15 @@ type Central.Modelers.sync.message = { load: Scene.scene };
   empty() : Central.Modelers.state = { my_id=SHF(); files=StringMap.empty };
 
   find_file(state, address) = StringMap.get(address, state.files);
+
+  update_file(state, address, f) : Central.Modelers.state =
+    f(modsha) = 
+      { state with files=StringMap.add(address, f(modsha), state.files) };
+    Option.switch(f, state, find_file(state, address));
+
+  apply_patch(state, address, patch) : Central.Modelers.state =
+    f(modsha) = `Modeler.Shared`.apply_patch(modsha, patch);
+    update_file(state, address, f);
 
 }}
 
