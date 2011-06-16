@@ -2,7 +2,7 @@ type GuiModeler.t = {
   modeler: Modeler.modeler;
   subjects: { 
     tool: subject(Modeler.tool);
-    selection: { this: subject(option(Modeler.objects)); color: subject(ColorFloat.color) }
+    selection: { this: subject(option(Scene.objects)); color: subject(ColorFloat.color) }
     }
 } ;
 

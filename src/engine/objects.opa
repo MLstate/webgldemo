@@ -36,7 +36,7 @@ display(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
 ;
 
 Cube = {{
-  create(gl, m_object : Modeler.objects, is_selected) : object =
+  create(gl, m_object : Scene.objects, is_selected) : object =
     //define our vertex positions as a list
     vertices = [
         // Front face

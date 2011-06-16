@@ -210,7 +210,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   (pMatrix, mvMatrix)
 ;
 
-@private drawScene_and_register(org_eng, get_scene : (->Modeler.scene), get_mode) =
+@private drawScene_and_register(org_eng, get_scene : (->Scene.scene), get_mode) =
   viewbox = setup_boxes(org_eng) ;
   rec aux(eng:engine) =
     gl = eng.context;
