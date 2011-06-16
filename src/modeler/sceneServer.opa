@@ -9,8 +9,8 @@ type Modeler.Shared.modeler = {
 
 @server `Modeler.Shared` = {{
 
-  empty(server_id) : Modeler.Shared.modeler = 
-    { scene=Scene.empty(SHF, server_id); address=Random.string(8); clients=List.empty };
+  empty(server_id, address) : Modeler.Shared.modeler = 
+    { scene=Scene.empty(SHF, server_id); ~address; clients=List.empty };
 
   add_client(modsha, client) = 
     { modsha with clients=List.cons(client, modsha.client) };  
@@ -41,7 +41,7 @@ type Central.Modelers.sync.message = { load: Scene.scene };
           scene = Scene.add_object(scene, Scene.cube(scene, (0.0, 0.0, -3.0)));
           scene = Scene.add_object(scene, Scene.cube(scene, (3.0, 0.0, 0.0)));
           scene = Scene.add_object(scene, Scene.cube(scene, (6.0, 0.0, 0.0)));
-          { `Modeler.Shared`.empty(state.my_id) with ~scene }
+          { `Modeler.Shared`.empty(state.my_id, scene_url) with ~scene }
         end;
       do Session.send(sync_channel, { load=base.scene });
       { unchanged };
