@@ -73,11 +73,12 @@ Scene = {{
       Option.map(f, scene.selection)
     end;
 
-  others_add_cube(scene, where) : Scene.Client.scene =
-    Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, {add_cube; ~where}));
+  apply_command(scene, command : Scene.Client.command) : Scene.Client.scene = 
+    Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, command));
+    
+  others_add_cube(scene, where) : Scene.Client.scene = apply_command(scene, {add_cube; ~where});
 
-  selection_change_color(scene, new_color) : Scene.Client.scene = 
-    Option.switch((p -> { scene with others=Scene.apply_patch(scene.others, p) }), scene, command_to_scene_patch(scene, {selection_change_color; ~new_color}));
+  selection_change_color(scene, new_color) : Scene.Client.scene = apply_command(scene, {selection_change_color; ~new_color});
     
 }} ;
 
