@@ -31,14 +31,6 @@ Scene = {{
     (target, { scene with objs=rest });
   add_object(scene, object) : Scene.scene = { scene with objs=List.cons(object, scene.objs) };
 
-  selection_change_color(scene, new_color) : Scene.Client.scene = 
-    match scene.selection with
-    | {none} -> scene
-    | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
-    end ;
-
-  others_add_cube(scene, where) : Scene.Client.scene = { scene with others=Scene.add_object(scene.others, {cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}) };
-
   selection_change(scene, possible_target) : Scene.Client.scene =
     match (possible_target, scene.selection) with
     | ({none}, {none}) -> scene
@@ -62,6 +54,14 @@ Scene = {{
 
   empty() : Scene.Client.scene = load(Scene.empty(Random.int(99)));
 
+  others_add_cube(scene, where) : Scene.Client.scene = { scene with others=Scene.add_object(scene.others, {cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()}) };
+
+  selection_change_color(scene, new_color) : Scene.Client.scene = 
+    match scene.selection with
+    | {none} -> scene
+    | {some=an_object} -> { scene with selection=Option.some({ an_object with color=new_color }) }
+    end ;
+
   command_to_scene_patch(scene, CPF, cmd : Scene.Client.command) : option(Scene.patch) = match cmd with
     | { add_cube; ... } as command -> Option.some({ pid=CPF(); ~command })
     | { selection_change_color; ~new_color } -> 
@@ -77,13 +77,13 @@ Modeler = {{
   tool_use(modeler, where, possible_target)  : Modeler.modeler = 
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
     match modeler.tool with
-    | {add_cube} -> { modeler with scene=Scene.others_add_cube(modeler.scene, where) }
+    | {add_cube} -> { modeler with scene=`Scene.Client`.others_add_cube(modeler.scene, where) }
     | {selection} -> { modeler with scene=Scene.selection_change(modeler.scene, possible_target) }
     end ;
 
   tool_change(modeler, new_tool) : Modeler.modeler = { modeler with tool=new_tool };
 
-  scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=Scene.selection_change_color(modeler.scene, new_color) };
+  scene_change_selection_color(modeler, new_color) : Modeler.modeler = { modeler with scene=`Scene.Client`.selection_change_color(modeler.scene, new_color) };
 
 }} ;
 
