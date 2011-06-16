@@ -35,7 +35,7 @@ Scene = {{
   add_object(scene, object) : Scene.scene = { scene with objs=List.cons(object, scene.objs) };
   reinject_object(scene, oobject : option(Scene.objects)) : Scene.scene = Option.switch((an_o -> add_object(scene, an_o)), scene, oobject);
 
-  apply_command(scene, command : Scene.command) : Scene.scene = match command with
+  @private apply_command(scene, command : Scene.command) : Scene.scene = match command with
     | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=scene.CPF(); color=ColorFloat.random()})
     | {change_color; ~id; ~new_color} ->
       (otarget, scene) = extract_object(scene, id);
