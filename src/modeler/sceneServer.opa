@@ -2,7 +2,7 @@
 type Modeler.Shared.modeler = {
   scene: Scene.scene;
   address: string;
-  clients: list(void)
+  clients: list(Central.Modelers.sync.message)
 } ;
 
 @server SHF : Fresh.next(int) = Fresh.server((i -> i : int));
@@ -11,6 +11,9 @@ type Modeler.Shared.modeler = {
 
   empty(server_id) : Modeler.Shared.modeler = 
     { scene=Scene.empty(SHF, server_id); address=Random.string(8); clients=List.empty };
+
+  add_client(modsha, client) = 
+    { modsha with clients=List.cons(client, modsha.client) };  
 
 }}
 
