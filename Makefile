@@ -1,7 +1,7 @@
 
 all: build
 run:
-	./main.exe -d
+	./main.exe -d --display-logs --verbose 6
 build: main.exe
 
 main.exe:
@@ -14,7 +14,7 @@ main.exe:
 		plugins/glMatrixPlugin.opp src/glMatrix/glMatrix.opa \
 		src/custom_shaders.opa \
 		src/engine/stack.opa src/engine/objects.opa src/engine/engine.opa \
-		src/modeler/modeler.opa src/modeler/guiModeler.opa \
+		src/modeler/modeler.opa src/modeler/sceneServer.opa src/modeler/guiModeler.opa \
 		src/pages/page_welcome.opa \
 		src/main.opa
 	mv src/main.exe main.exe

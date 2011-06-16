@@ -3,20 +3,26 @@ type GuiModeler.t = {
   subjects: { 
     tool: subject(Modeler.tool);
     selection: { this: subject(option(Scene.objects)); color: subject(ColorFloat.color) }
-    }
+    };
 } ;
 
 @client GuiModeler = {{
 
-  empty(scene_url) : GuiModeler.t = 
-    modeler = Modeler.empty(scene_url);
+  Sync = {{
+    on_message(state, message) = match message with
+      | {load=a_scene} -> {unchanged}
+      end ;
+  }}
+
+  empty(scene_url, client_id) : GuiModeler.t = 
+    modeler = Modeler.empty(scene_url, client_id);
     subjects = { tool=Observable.make(modeler.tool); selection={ this=Observable.make(modeler.scene.selection); color=Observable.make( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) ) } };
     { ~modeler; ~subjects };
 
   @private on_message(state : GuiModeler.t, message) = 
     set_modeler(modeler) = { set={ state with ~modeler } } ;
     _set_subjects(subjects) = { set={ state with ~subjects } } ;
-    set(state) = { set=state };
+    set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
     match message with
     | {click_on_scene; ~where; ~possible_target} -> 
       modeler = Modeler.tool_use(state.modeler, where, possible_target);
@@ -87,7 +93,9 @@ type GuiModeler.t = {
       <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
     and_do(_) =
       (channel, get_scene, get_subjects) =
-        (channel, get_state) = SessionExt.make_with_getter(empty(scene_url), on_message);
+        client_id = Random.int(777);
+        (channel, sync_channel, get_state) = SessionExt.make_2_side(empty(scene_url, client_id), on_message, Sync.on_message);
+        do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
         (channel, (-> get_state().modeler.scene), (->get_state().subjects)) ;
       mouse_listener(e) = match e with
         | { mousedown; ~pos; ~possible_target } -> Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target})

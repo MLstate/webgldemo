@@ -7,7 +7,7 @@ type Scene.patch = { pid: patch_id;  command: Scene.command };
 
 type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color } / { selection_change; possible_target: option(hidden_id) };
 
-type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene };
+type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene; CHF: Fresh.next(hidden_id) };
 
 type Modeler.tool = {selection} / {add_cube} ;
 
@@ -18,9 +18,11 @@ type Modeler.modeler = {
 } ;
 
 Scene = {{
-  empty(client_id) : Scene.scene =
-    c(pos) = {cube=pos; id=CHF(); color=ColorFloat.random()};
-    { objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ]; CPF=build_CPF(client_id) };
+  empty(client_id) : Scene.scene = { objs=List.empty; CPF=build_CPF(client_id) };
+
+  a_little_empty(F, client_id) : Scene.scene =
+    c(pos) = {cube=pos; id=F(); color=ColorFloat.random()};
+    { empty(client_id) with objs=[ c((0.0, 0.0, -3.0)), c((3.0, 0.0, 0.0)), c((6.0, 0.0, 0.0)) ] };
 
   find_object(scene : Scene.scene, target_id) : option(Scene.objects) = List.find((z -> z.id == target_id), scene.objs);
   extract_object(scene, target_id) : (option(Scene.objects), Scene.scene) = 
@@ -32,16 +34,16 @@ Scene = {{
   add_object(scene, object) : Scene.scene = { scene with objs=List.cons(object, scene.objs) };
   reinject_object(scene, oobject : option(Scene.objects)) : Scene.scene = Option.switch((an_o -> add_object(scene, an_o)), scene, oobject);
 
-  apply_command(scene, command : Scene.command) : Scene.scene = match command with
-    | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=CHF(); color=ColorFloat.random()})
+  apply_command(scene, F, command : Scene.command) : Scene.scene = match command with
+    | {add_cube; ~where} -> add_object(scene, {cube=(where.x, where.y, where.z); id=F(); color=ColorFloat.random()})
     | {change_color; ~id; ~new_color} ->
       (otarget, scene) = extract_object(scene, id);
       f(an_o) = add_object(scene, { an_o with color=new_color });
       Option.switch(f, scene, otarget)
     end ;
 
-  apply_patch(scene, patch : Scene.patch) : Scene.scene = apply_command(scene, patch.command) ;
-  apply_patchs(scene, patchs : list(Scene.patch)) : Scene.scene = List.fold((p, acc -> apply_patch(acc, p)), patchs, scene);
+  apply_patch(scene, F, patch : Scene.patch) : Scene.scene = apply_command(scene, F, patch.command) ;
+  apply_patchs(scene, F, patchs : list(Scene.patch)) : Scene.scene = List.fold((p, acc -> apply_patch(acc, F, p)), patchs, scene);
 
 }} ;
 
@@ -49,9 +51,9 @@ Scene = {{
 
   load(scene : Scene.scene) : Scene.Client.scene =
     (selection, others) = Scene.extract_object_by_pos(scene, 0);
-    { ~selection; ~others };
+    { ~selection; ~others; CHF=CHF };
 
-  empty() : Scene.Client.scene = load(Scene.empty(Random.int(99)));
+  empty(client_id) : Scene.Client.scene = load(Scene.empty(client_id));
 
   @private get_scene(scene : Scene.Client.scene) : Scene.scene = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, scene.selection);
 
@@ -67,14 +69,14 @@ Scene = {{
   selection_change_low(scene, possible_target) : Scene.Client.scene =
     match (possible_target, scene.selection) with
     | ({none}, {none}) -> scene
-    | ({none}, {~some}) -> { selection=Option.none; others=Scene.add_object(scene.others, some) }
+    | ({none}, {~some}) -> { scene with selection=Option.none; others=Scene.add_object(scene.others, some) }
     | ({~some}, osel) -> 
       //we put back the sel with others
       others = Option.switch((sel -> Scene.add_object(scene.others, sel)), scene.others, osel);
       //we retrieve the new sel
       (new_sel, others) = Scene.extract_object(others, some);
       do if Option.is_none(new_sel) then Log.error("Scene", "a selection failed to find the corresponding object");
-      { selection=new_sel; ~others }
+      { scene with selection=new_sel; ~others }
     end ;
 
   apply_command(scene, command : Scene.Client.command) : Scene.Client.scene =
@@ -85,7 +87,7 @@ Scene = {{
       do Log.debug("apply_command", "{command} \t {scene.selection}");
       f(p) =
         (selection, others) =
-          base = Scene.apply_patch(get_scene(scene), p);
+          base = Scene.apply_patch(get_scene(scene), scene.CHF, p);
           g(sel) = Scene.extract_object(base, sel.id);
           Option.switch(g, (Option.none, base), scene.selection);
         { scene with ~others; ~selection }
@@ -101,7 +103,7 @@ Scene = {{
 }} ;
 
 Modeler = {{
-  empty(scene_url) : Modeler.modeler = { address=scene_url; scene=`Scene.Client`.empty(); tool={selection} } ;
+  empty(scene_url, client_id) : Modeler.modeler = { address=scene_url; scene=`Scene.Client`.empty(client_id); tool={selection} } ;
 
   tool_use(modeler, where, possible_target)  : Modeler.modeler = 
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");
