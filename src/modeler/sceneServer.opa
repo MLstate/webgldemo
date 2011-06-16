@@ -28,7 +28,9 @@ type Central.Modelers.message =
   { register; scene_url: string; sync_channel: channel(Central.Modelers.sync.message); client_id: int }
 / { apply_patch; patch: Scene.patch; address: string };
 
-type Central.Modelers.sync.message = { load: Scene.scene };
+type Central.Modelers.sync.message = 
+  { load: Scene.scene }
+/ { write_patch; patch: Scene.patch };
 
 @server `Central.Modelers` = {{
   empty() : Central.Modelers.state = { my_id=SHF(); files=StringMap.empty };

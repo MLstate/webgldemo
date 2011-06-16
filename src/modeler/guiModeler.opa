@@ -9,12 +9,15 @@ type GuiModeler.t = {
 @client GuiModeler = {{
 
   Sync = {{
-    on_message(state, message) = 
+    on_message(state : GuiModeler.t, message) = 
       set_modeler(modeler) = { set={ state with ~modeler } } ;
       set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
-      match message with
+      match message : Central.Modelers.sync.message with
       | {load=a_scene} -> 
         modeler = Modeler.load(`Scene.Client`.load(a_scene, state.modeler.client_id), state.modeler.address, state.modeler.client_id);
+        set_modeler(modeler)
+      | { write_patch; ~patch } -> 
+        modeler = Modeler.write_patch(state.modeler, patch);
         set_modeler(modeler)
       end ;
   }}

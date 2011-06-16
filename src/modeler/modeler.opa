@@ -84,21 +84,23 @@ Scene = {{
       { scene with selection=new_sel; ~others }
     end ;
 
+  write_patch(scene, patch : Scene.patch) : Scene.Client.scene =
+    (selection, others) =
+      base = Scene.apply_patch(get_scene(scene), patch);
+      g(sel) = Scene.extract_object(base, sel.id);
+      Option.switch(g, (Option.none, base), scene.selection);
+    { scene with ~others; ~selection };
+
   apply_command(scene, command : Scene.Client.command) : (Scene.Client.scene, option(Scene.patch)) =
     match command with
     | { selection_change; ~possible_target } -> (selection_change_low(scene, possible_target), Option.none)
     | _ -> 
       command = command_to_scene_patch(scene, command);
       do Log.debug("apply_command", "{command} \t {scene.selection}");
-      f(p) =
-        (selection, others) =
-          base = Scene.apply_patch(get_scene(scene), p);
-          g(sel) = Scene.extract_object(base, sel.id);
-          Option.switch(g, (Option.none, base), scene.selection);
-        { scene with ~others; ~selection }
+      f(p) = write_patch(scene, p);
       (Option.switch(f, scene, command), command)
     end ;
-    
+
   others_add_cube(scene, where) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {add_cube; ~where});
 
   selection_change(scene, possible_target) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change; ~possible_target});
@@ -127,6 +129,10 @@ Modeler = {{
   scene_change_selection_color(modeler, new_color) : (Modeler.modeler, option(Scene.patch)) = 
     (scene, opatch) = `Scene.Client`.selection_change_color(modeler.scene, new_color);
     ({ modeler with ~scene }, opatch);
+
+  write_patch(modeler, patch) : Modeler.modeler = 
+    scene = `Scene.Client`.write_patch(modeler.scene, patch);
+    { modeler with ~scene };
 
 }} ;
 
