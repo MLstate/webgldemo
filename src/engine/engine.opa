@@ -241,19 +241,22 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
           mvMatrix = Stack.peek(s) ;
           do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
           do mat4.inverse(mvMatrix, mvMatrix);
-          v1 = vec4.from_public((x, y, 1.0, 1.0));
-          v2 = vec4.from_public((9.9, 9.9, 9.9, 9.9));
-          do mat4.multiplyVec4(mvMatrix, v1, v2);
-          v22 = vec4.to_public(v2);
-          //v22 = { v22 with f2=0.0 };
-          v2 = (v22.f1 / v22.f4, v22.f2 / v22.f4, v22.f3 / v22.f4);
+          g(x, y) =
+            vstart = vec4.from_public((x, y, 1.0, 1.0));
+            vtmp = vec4.from_public((9.9, 9.9, 9.9, 9.9));
+            do mat4.multiplyVec4(mvMatrix, vstart, vtmp);
+            vpreres = vec4.to_public(vtmp);
+            vres = (vpreres.f1 / vpreres.f4, vpreres.f2 / vpreres.f4, vpreres.f3 / vpreres.f4);
+            do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
+            vres;
+          v2 = g(x, y);
           data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
           do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
           pickedColor = match Webgl.Uint8Array.to_int_list(data) with
             | [r, g, b, _] -> (r, g, b)
             | _ -> error("Picking failure")
             end ;
-          do Log.debug("Picking", "Color is: { pickedColor }; v1={ vec4.str(v1) }, \t v2={ v2 }");
+          do Log.debug("Picking", "Color is: { pickedColor }");
           //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
           possible_target =
             (r, g, b) = pickedColor;
