@@ -267,7 +267,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
           _ = cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
-          eng
+          { eng with last_coord_fixer=Option.some(g) }
         end)
       | {normal} ->
         do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
