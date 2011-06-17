@@ -239,7 +239,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
           mvMatrix = Stack.peek(s) ;
           do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
           do mat4.inverse(mvMatrix, mvMatrix);
-          g(pos) =
+          g(pos : Dom.dimensions) : vec3 =
             x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
             y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
             vstart = vec4.from_public((x, y, 1.0, 1.0));
@@ -264,7 +264,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
               (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.none })
+          cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) })
           end
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));

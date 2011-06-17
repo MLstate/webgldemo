@@ -7,7 +7,7 @@ type GuiModeler.t = {
     tool: subject(Modeler.tool);
     selection: { this: subject(option(Scene.objects)); color: subject(ColorFloat.color) }
     };
-  last_coord_fixer: option(string -> string)
+  last_coord_fixer: option(Dom.dimensions -> vec3)
 } ;
 
 @client GuiModeler = {{
