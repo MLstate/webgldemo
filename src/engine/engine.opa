@@ -277,7 +277,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
 initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
   match WebGLUtils.setupWebGL_with_custom_failure(Dom.of_selection(canvas_sel)) with
   | { ok=context } ->
-    mode = Mutable.make_client({normal});
+    mode = Mutable.make({normal});
     is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
     _ = 
       handler(e) = 
