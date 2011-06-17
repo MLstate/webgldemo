@@ -26,7 +26,7 @@
   framePickBuffer: Webgl.WebGLFramebuffer;
   scene: engine.scene;
   selector: dom;
-  last_coord_fixer: option(Dom.dimensions -> vec3)
+  last_coord_fixer: option(Dom.dimensions -> vec3);
 } ;
 
 @client initPickBuffer(eng) = 
@@ -213,7 +213,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   (pMatrix, mvMatrix)
 ;
 
-@private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_mode) =
+@private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_mode, get_pending_mouseup_and_clean) =
   viewbox = setup_boxes(org_eng) ;
   rec aux(eng:engine) =
     gl = eng.context;
@@ -277,6 +277,12 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
         _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
         eng
       end ;
+    do 
+      todo : list = get_pending_mouseup_and_clean();
+      f((bad_pos, cont)) : void = 
+        g(last_coord_fixer) = cont(last_coord_fixer(bad_pos));
+        Option.iter(g, eng.last_coord_fixer);
+      List.iter(f, todo);
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
     void
     ;
@@ -287,6 +293,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
   match WebGLUtils.setupWebGL_with_custom_failure(Dom.of_selection(canvas_sel)) with
   | { ok=context } ->
     mode = Mutable.make({normal});
+    pending_mouseup = Mutable.make(List.empty);
     is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
     _ =
       recompute_pos(rel_mouse_position_on_page) =
@@ -305,6 +312,11 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
           mouse_listener(e);
         if not(is_picking(mode.get())) then mode.set({pick=gl_pos; ~cont}) else void;
       _ = Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
+      handler_mouseup(e) =
+        gl_pos = recompute_pos(e.mouse_position_on_page);
+        cont(x) = void;
+        pending_mouseup.set(List.cons((gl_pos, cont), pending_mouseup.get()));
+      _ = Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;
     gl = context;
     eng : engine =
@@ -321,7 +333,12 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do drawScene_and_register(eng, get_scene, mode.get);
+    do 
+      get_pending_mouseup_and_clean() = 
+        tmp = List.rev(pending_mouseup.get());
+        do pending_mouseup.set(List.empty);
+        tmp;
+      drawScene_and_register(eng, get_scene, mode.get, get_pending_mouseup_and_clean);
     { success }
   | { ~ko } -> { failure=ko }
   end ;
