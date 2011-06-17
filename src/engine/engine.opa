@@ -250,17 +250,18 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
             do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
             vres;
           v2 = g(x, y);
-          data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
-          do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
-          pickedColor = match Webgl.Uint8Array.to_int_list(data) with
-            | [r, g, b, _] -> (r, g, b)
-            | _ -> error("Picking failure")
-            end ;
-          do Log.debug("Picking", "Color is: { pickedColor }");
-          //do jlog("Color is: { pickedColor }; v={ vec3.str(v) }");
           possible_target =
-            (r, g, b) = pickedColor;
-            f(z) = (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
+            pickedColor = 
+              data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
+              do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
+              match Webgl.Uint8Array.to_int_list(data) with
+              | [r, g, b, _] -> (r, g, b)
+              | _ -> error("Picking failure")
+              end ;
+            do Log.debug("Picking", "Color is: { pickedColor }");
+            f = 
+              (r, g, b) = pickedColor;
+              (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
           cont({ mousedown; pos=this_viewbox.clear_near_far(v2); ~possible_target; coord_fixer=Option.none })
