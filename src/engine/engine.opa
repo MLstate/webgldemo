@@ -24,8 +24,9 @@
   shaderProgram: my_custom_shaderProgram
   static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
   framePickBuffer: Webgl.WebGLFramebuffer;
-  scene: engine.scene
-  selector: dom
+  scene: engine.scene;
+  selector: dom;
+  last_coord_fixer: option(Dom.dimensions -> vec3)
 } ;
 
 @client initPickBuffer(eng) = 
@@ -228,10 +229,10 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
         selection_scene = Option.switch((the -> [ f(true, the) ]), List.empty, tmp.selection);
         List.append(selection_scene, others_scene);
       ({ eng with ~scene }, scene);
-    do match get_mode() with
+    eng = match get_mode() with
     | {pick=pos; ~cont} ->
-      match which_box(viewbox, pos) with
-        | {out} -> void
+      eng = match which_box(viewbox, pos) with
+        | {out} -> eng
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
           //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
           this_viewbox = fetch_box(viewbox, who);
@@ -264,15 +265,17 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
               (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) })
-          end
+          _ = cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
+          eng
+        end
+      eng
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
       _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
       _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
       _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
-      void
+      eng
     end ;
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
     void
@@ -305,7 +308,8 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
       void;
     gl = context;
     eng : engine =
-      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel });
+      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel;
+        last_coord_fixer=Option.none });
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
