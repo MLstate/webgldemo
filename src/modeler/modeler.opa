@@ -132,6 +132,8 @@ Modeler = {{
     (scene, opatch) = `Scene.Client`.selection_change_color(modeler.scene, new_color);
     ({ modeler with ~scene }, opatch);
 
+  possible_mode(modeler, where) : (Modeler.modeler, option(Scene.patch)) = (modeler, Option.none);
+
   write_patch(modeler, patch) : Modeler.modeler =
     if (modeler.client_id == get_client_id_from_patch_id(patch.pid)) then
       modeler

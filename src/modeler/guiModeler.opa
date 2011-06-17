@@ -64,6 +64,10 @@ type GuiModeler.t = {
       do send_opatch(opatch);
       subjects = { state.subjects with selection.color=Observable.change_state(new_color, state.subjects.selection.color) };
       set({ ~subjects; ~modeler})
+    | {modeler_apply_possible_move; ~where } -> 
+      (modeler, opatch) = Modeler.possible_mode(state.modeler, where);
+      do send_opatch(opatch);
+      { set={ state with ~modeler } }
     end ;
 
   setup_menu(parent_sel, channel, s_tool) : void =
@@ -128,7 +132,9 @@ type GuiModeler.t = {
       mouse_listener(e) = match e with
         | { mousedown; ~pos; ~possible_target; ~coord_fixer } -> 
           Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target; last_coord_fixer=coord_fixer})
-        | { mouseup; ~pos } -> void
+        | { mouseup; ~pos } -> 
+          msg = {modeler_apply_possible_move; where={x=pos.f1; y=pos.f2; z=pos.f3} };
+          Session.send(channel, msg)
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
