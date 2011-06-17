@@ -236,12 +236,12 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
           //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
           this_viewbox = fetch_box(viewbox, who);
           (pMatrix, s) = drawScene_for_a_viewport(eng, who, this_viewbox, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
-          x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
-          y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
           mvMatrix = Stack.peek(s) ;
           do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
           do mat4.inverse(mvMatrix, mvMatrix);
-          g(x, y) =
+          g(pos) =
+            x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
+            y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
             vstart = vec4.from_public((x, y, 1.0, 1.0));
             vtmp = vec4.from_public((9.9, 9.9, 9.9, 9.9));
             do mat4.multiplyVec4(mvMatrix, vstart, vtmp);
@@ -249,7 +249,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
             vres = (vpreres.f1 / vpreres.f4, vpreres.f2 / vpreres.f4, vpreres.f3 / vpreres.f4);
             do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
             vres;
-          v2 = g(x, y);
+          pos_result = g(pos);
           possible_target =
             pickedColor = 
               data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
@@ -264,7 +264,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
               (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          cont({ mousedown; pos=this_viewbox.clear_near_far(v2); ~possible_target; coord_fixer=Option.none })
+          cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.none })
           end
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
