@@ -215,7 +215,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
 
 @private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_mode, get_pending_mouseup_and_clean) =
   viewbox = setup_boxes(org_eng) ;
-  last_clear_near_far = Mutable.make((x -> x));
+  last_viewbox = Mutable.make(Option.none);
   rec aux(eng:engine) =
     gl = eng.context;
     (eng, scene) = 
@@ -268,7 +268,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
           _ = cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
-          do last_clear_near_far.set(this_viewbox.clear_near_far);
+          do last_viewbox.set(Option.some(this_viewbox));
           { eng with last_coord_fixer=Option.some(g) }
         end)
       | {normal} ->
@@ -282,7 +282,13 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
     do 
       todo : list = get_pending_mouseup_and_clean();
       f((bad_pos, cont)) : void = 
-        g(last_coord_fixer) = cont(last_clear_near_far.get()(last_coord_fixer(bad_pos)));
+        g(last_coord_fixer) =
+          with_v(this_viewbox) =
+            if this_viewbox.inbox(bad_pos) then
+              cont(this_viewbox.clear_near_far(last_coord_fixer(bad_pos)))
+            else
+              Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}");
+          Option.iter(with_v, last_viewbox.get());
         Option.iter(g, eng.last_coord_fixer);
       List.iter(f, todo);
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
