@@ -1,13 +1,6 @@
 @private id_work_area = "work_area" ;
 @private id_gui_area = "gui_area" ;
 
-default_css = css
-#{id_gui_area} {
-}
-;
-
-Css = [ default_css ] ;
-
 _ = Random.random_init();
 
 /*
