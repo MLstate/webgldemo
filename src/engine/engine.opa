@@ -314,7 +314,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
       _ = Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
       handler_mouseup(e) =
         gl_pos = recompute_pos(e.mouse_position_on_page);
-        cont(x) = void;
+        cont(x) = mouse_listener({mouseup; pos=x});
         pending_mouseup.set(List.cons((gl_pos, cont), pending_mouseup.get()));
       _ = Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;

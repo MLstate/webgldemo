@@ -128,6 +128,7 @@ type GuiModeler.t = {
       mouse_listener(e) = match e with
         | { mousedown; ~pos; ~possible_target; ~coord_fixer } -> 
           Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target; last_coord_fixer=coord_fixer})
+        | { mouseup; ~pos } -> void
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
