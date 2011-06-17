@@ -1,5 +1,5 @@
-import widgets.colorpicker
-import widgets.core
+import stdlib.widgets.colorpicker
+import stdlib.widgets.core
 
 type GuiModeler.t = {
   modeler: Modeler.modeler;
