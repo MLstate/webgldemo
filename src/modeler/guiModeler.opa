@@ -1,3 +1,6 @@
+import widgets.colorpicker
+import widgets.core
+
 type GuiModeler.t = {
   modeler: Modeler.modeler;
   subjects: { 
@@ -85,19 +88,21 @@ type GuiModeler.t = {
         | {none} -> <></>
         | {some=_} ->
           id = Random.string(7);
+          config =
+            style = { WColorpicker.default_config_style with preview=WStyler.make_style(css { height:5px; width:5px; border:1px double black;}) };
+            s(a_color) =
+              Session.send(channel, {modeler_change_scene_selection_color; new_color=ColorFloat.from_Color_color(a_color)});
+            { WColorpicker.default_config with on_select=s; ~style };
           do
-            c(a_color) = Color.color_to_string(a_color);
             on_sel_color_change =
-              then_do(new_color) = 
-                new_color = ColorFloat.to_Color_color(new_color);
-                do Dom.transform([#{id}<- c(new_color)]); 
-                Dom.set_style(#{id}, [ {background=Css_build.background_color(new_color)} ]);
+              then_do(f_new_color) = 
+                new_color = ColorFloat.to_Color_color(f_new_color);
+                WColorpicker.set_color(id, config, new_color, false);
               { si=(->not(Dom.is_empty(#{id}))); ~then_do; else_autoclean };
             Observable.register(on_sel_color_change, s_selection.color);
           s(new_color) = (_ -> Session.send(channel, {modeler_change_scene_selection_color; ~new_color}));
           <div class="panel_btm">
-               <label>Color: <span id=#{id} width="5px" height="5px" onclick={s(ColorFloat.random())} >*</span>
-               </label>           
+               <label>Color: <div id=#{id}>{ WColorpicker.html(id, config) }</div></label>           
           </div>
         end ;
       on_selection_change =
