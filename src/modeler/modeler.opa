@@ -2,10 +2,10 @@
 type Scene.objects = { cube: (float, float, float); id: hidden_id; color: ColorFloat.color } ;
 
 type Scene.scene = { objs: list(Scene.objects); CPF: Fresh.next(hidden_id) };
-type Scene.command = { add_cube; cube:Scene.objects } / { change_color; id: hidden_id; new_color: ColorFloat.color };
+type Scene.command = { add_cube; cube:Scene.objects } / { change_color; id: hidden_id; new_color: ColorFloat.color } / {move_object; id: hidden_id; where:(float, float, float) };
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
-type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color } / { selection_change; possible_target: option(hidden_id) };
+type Scene.Client.command = { add_cube; where: {x: float; y: float; z:float } } / { selection_change_color; new_color: ColorFloat.color } / { selection_change; possible_target: option(hidden_id) } / {possible_move; where: {x: float; y: float; z:float }};
 
 type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene };
 
@@ -41,6 +41,10 @@ Scene = {{
       (otarget, scene) = extract_object(scene, id);
       f(an_o) = add_object(scene, { an_o with color=new_color });
       Option.switch(f, scene, otarget)
+    | {move_object; ~where; ~id} ->
+      (otarget, scene) = extract_object(scene, id);
+      f(an_o) = add_object(scene, { an_o with cube=where });
+      Option.switch(f, scene, otarget)
     end ;
 
   apply_patch(scene, patch : Scene.patch) : Scene.scene = apply_command(scene, patch.command) ;
@@ -69,6 +73,9 @@ Scene = {{
       Option.some({ pid=scene.others.CPF(); ~command})
     | { selection_change_color; ~new_color } -> 
       f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
+      Option.map(f, scene.selection)
+    | { possible_move; ~where } ->
+      f(sel) = { pid=scene.others.CPF(); command={ move_object; where=(where.x, where.y, where.z); id=sel.id } };
       Option.map(f, scene.selection)
     | { selection_change; ... } -> Option.none
     end;
@@ -108,7 +115,9 @@ Scene = {{
   selection_change(scene, possible_target) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change; ~possible_target});
 
   selection_change_color(scene, new_color) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change_color; ~new_color});
-    
+  
+  do_possible_mode(scene, where) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, { possible_move; ~where });
+
 }} ;
 
 Modeler = {{
@@ -132,7 +141,9 @@ Modeler = {{
     (scene, opatch) = `Scene.Client`.selection_change_color(modeler.scene, new_color);
     ({ modeler with ~scene }, opatch);
 
-  possible_mode(modeler, where) : (Modeler.modeler, option(Scene.patch)) = (modeler, Option.none);
+  do_possible_mode(modeler, where) : (Modeler.modeler, option(Scene.patch)) =
+    (scene, opatch) = `Scene.Client`.do_possible_mode(modeler.scene, where);
+    ({ modeler with ~scene }, opatch);
 
   write_patch(modeler, patch) : Modeler.modeler =
     if (modeler.client_id == get_client_id_from_patch_id(patch.pid)) then

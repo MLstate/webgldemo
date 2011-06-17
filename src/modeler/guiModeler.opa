@@ -65,7 +65,7 @@ type GuiModeler.t = {
       subjects = { state.subjects with selection.color=Observable.change_state(new_color, state.subjects.selection.color) };
       set({ ~subjects; ~modeler})
     | {modeler_apply_possible_move; ~where } -> 
-      (modeler, opatch) = Modeler.possible_mode(state.modeler, where);
+      (modeler, opatch) = Modeler.do_possible_mode(state.modeler, where);
       do send_opatch(opatch);
       { set={ state with ~modeler } }
     end ;
