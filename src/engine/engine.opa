@@ -260,7 +260,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
             f(z) = (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.)) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          cont({ mousedown; pos=this_viewbox.clear_near_far(v2); ~possible_target })
+          cont({ mousedown; pos=this_viewbox.clear_near_far(v2); ~possible_target; coord_fixer=Option.none })
           end
     | {normal} ->
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
@@ -281,20 +281,24 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
   | { ok=context } ->
     mode = Mutable.make({normal});
     is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
-    _ = 
-      handler(e) = 
+    _ =
+      recompute_pos(rel_mouse_position_on_page) =
         m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
           c_pos = Dom.get_offset(canvas_sel);
-          rel = e.mouse_position_on_page;
+          rel = rel_mouse_position_on_page;
           { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
         // now with gl the origin will be at the lower left corner
         gl_pos = { x_px=min(max(m_pos.x_px,0), width-1); y_px=min(max(height - 1 - m_pos.y_px, 0), height-1) };
+        do Log.debug("P", "[({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
+        gl_pos;
+      handler_mousedown(e) =
+        gl_pos = recompute_pos(e.mouse_position_on_page);
         cont(e) =
           do mode.set({normal});
           mouse_listener(e);
-        do if not(is_picking(mode.get())) then mode.set({pick=gl_pos; ~cont});
-        Log.debug("P", "[(,)-({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
-      Dom.bind(canvas_sel, { click }, handler);
+        if not(is_picking(mode.get())) then mode.set({pick=gl_pos; ~cont}) else void;
+      _ = Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
+      void;
     gl = context;
     eng : engine =
       start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel });

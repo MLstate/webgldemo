@@ -7,6 +7,7 @@ type GuiModeler.t = {
     tool: subject(Modeler.tool);
     selection: { this: subject(option(Scene.objects)); color: subject(ColorFloat.color) }
     };
+  last_coord_fixer: option(string -> string)
 } ;
 
 @client GuiModeler = {{
@@ -34,25 +35,26 @@ type GuiModeler.t = {
   empty(scene_url, client_id) : GuiModeler.t = 
     modeler = Modeler.empty(scene_url, client_id);
     subjects = { tool=Observable.make(modeler.tool); selection={ this=Observable.make(modeler.scene.selection); color=Observable.make( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) ) } };
-    { ~modeler; ~subjects };
+    { ~modeler; ~subjects; last_coord_fixer=Option.none };
 
   @private on_message(state : GuiModeler.t, message) = 
     set_modeler(modeler) = { set={ state with ~modeler } } ;
     _set_subjects(subjects) = { set={ state with ~subjects } } ;
     set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
+    set_with_last(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler; last_coord_fixer=new_state.last_coord_fixer } };
     send_opatch(opatch) =
       m(patch) = { apply_patch; ~patch; address=state.modeler.address }; 
       Option.iter((p -> Session.send(central_modelers, m(p))), opatch);
     match message with
-    | {click_on_scene; ~where; ~possible_target} -> 
+    | {click_on_scene; ~where; ~possible_target; ~last_coord_fixer} -> 
       (modeler, opatch) = Modeler.tool_use(state.modeler, where, possible_target);
       do send_opatch(opatch);
       if Observable.get_state(state.subjects.selection.this) == modeler.scene.selection then
-        set_modeler(modeler)
+        { set={ state with ~modeler; ~last_coord_fixer } }
       else
         subjects = { state.subjects with selection={ this=Observable.change_state(modeler.scene.selection, state.subjects.selection.this); 
                                                      color=Observable.change_state( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) , state.subjects.selection.color) } };
-        set({ ~subjects; ~modeler })
+        set({ ~subjects; ~modeler; ~last_coord_fixer })
     | {modeler_change_tool=new_tool} ->
       modeler = Modeler.tool_change(state.modeler, new_tool);
       subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
@@ -124,7 +126,8 @@ type GuiModeler.t = {
         do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
         (channel, (-> get_state().modeler.scene), (->get_state().subjects)) ;
       mouse_listener(e) = match e with
-        | { mousedown; ~pos; ~possible_target } -> Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target})
+        | { mousedown; ~pos; ~possible_target; ~coord_fixer } -> 
+          Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target; last_coord_fixer=coord_fixer})
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
