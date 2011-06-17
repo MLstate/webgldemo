@@ -1,13 +1,12 @@
 @private id_work_area = "work_area" ;
 @private id_gui_area = "gui_area" ;
 
-default_css = css 
+default_css = css
 #{id_gui_area} {
-   background-color: #D000D0;
 }
 ;
 
-css = [ default_css ] ;
+Css = [ default_css ] ;
 
 _ = Random.random_init();
 
@@ -23,15 +22,18 @@ do timer42.start()
 server_modeler_static_page(scene_url) =
   width = 500;
   height = 500;
-  <div>
+  <div class="container">
     <div id=#{id_gui_area} onready={_ -> GuiModeler.init(scene_url, SHF(), #{id_gui_area}, width, height)}/>
     <div id=#{id_work_area} />
   </div> ;
 
+resources = Rule.of_map(@static_include_directory("./src/css"))
+
 urls =
   parser
+  | "/" r=resources -> r
   | "/scene/" scene_url=(.*) ->
-    html("3D creation", server_modeler_static_page(Text.to_string(scene_url)))
+    Resource.styled_page("3D creation", ["/src/css/style.css"],server_modeler_static_page(Text.to_string(scene_url)))
   | (.*) ->
     html("Welcome", server_welcome_static_page())
   end ;
