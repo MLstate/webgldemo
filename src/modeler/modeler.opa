@@ -116,7 +116,7 @@ Scene = {{
 
   selection_change_color(scene, new_color) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change_color; ~new_color});
   
-  do_possible_mode(scene, where) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, { possible_move; ~where });
+  do_possible_move(scene, where) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, { possible_move; ~where });
 
 }} ;
 
@@ -141,9 +141,13 @@ Modeler = {{
     (scene, opatch) = `Scene.Client`.selection_change_color(modeler.scene, new_color);
     ({ modeler with ~scene }, opatch);
 
-  do_possible_mode(modeler, where) : (Modeler.modeler, option(Scene.patch)) =
-    (scene, opatch) = `Scene.Client`.do_possible_mode(modeler.scene, where);
-    ({ modeler with ~scene }, opatch);
+  do_possible_move(modeler, where) : (Modeler.modeler, option(Scene.patch)) =
+    match modeler.tool with
+    | {selection} -> 
+      (scene, opatch) = `Scene.Client`.do_possible_move(modeler.scene, where);
+      ({ modeler with ~scene }, opatch)
+    | {add_cube} -> (modeler, Option.none)
+    end;
 
   write_patch(modeler, patch) : Modeler.modeler =
     if (modeler.client_id == get_client_id_from_patch_id(patch.pid)) then
