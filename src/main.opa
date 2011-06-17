@@ -20,15 +20,17 @@ server_modeler_static_page(scene_url) =
     <div id=#{id_work_area} />
   </div> ;
 
-resources = Rule.of_map(@static_include_directory("./src/css"))
+resources_css = Rule.of_map(@static_include_directory("./css"))
+resources_img = Rule.of_map(@static_include_directory("./img"))
 
 urls =
   parser
-  | "/" r=resources -> r
+  | "/" r=resources_css -> r
+  | "/" r=resources_img -> r
   | "/scene/" scene_url=(.*) ->
-    Resource.styled_page("3D creation", ["/src/css/style.css"],server_modeler_static_page(Text.to_string(scene_url)))
+    Resource.styled_page("3D creation", ["/css/style.css"], server_modeler_static_page(Text.to_string(scene_url)))
   | (.*) ->
-    html("Welcome", server_welcome_static_page())
+    Resource.styled_page("Welcome", ["/css/style.css"], server_welcome_static_page())
   end ;
 
 
