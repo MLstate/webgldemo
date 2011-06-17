@@ -71,32 +71,32 @@ button:hover, input[type=submit]:hover, input[type=button]:hover, .button:hover,
     position: relative;
     width:800px;
     margin: 0 auto;
-    padding: 5px;
+
     border:1px solid #bbb;
 }
-.canvas_wrap, .panel_btm {
-    border-top:1px solid #eee;
-}
 .canvas_wrap {
-    background:#ddd;
-    box-shadow: 0 1px 3px #bbb inset;
-    -webkit-box-shadow: 0 1px 3px #bbb inset;
-    -moz-box-shadow: 0 1px 3px #bbb inset;
+    background:#E9EDF2 url('/img/3dgrid.png') no-repeat 50% 50%;
 }
 .panel_top, .panel_btm {
+    padding: 5px 0;
     background: #f6f6f2;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#FeFeFc,endColorstr=#e6e6e2);
     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#FeFeFc,endColorstr=#e6e6e2)";
     background: -webkit-gradient(linear,0% 0%,0% 100%,from(#FeFeFc),to(#e6e6e2));
     background: -moz-linear-gradient(-90deg,#FeFeFc,#e6e6e2);
     background: -o-linear-gradient(#FeFeFc,#e6e6e2);
+    box-shadow: 0 1px 3px #bbb;
+    -webkit-box-shadow: 0 1px 3px #bbb;
+    -moz-box-shadow: 0 1px 3px #bbb;
 }
 .panel_top {
+    border-bottom:1px solid #eee;
     border-radius: 0.3em 0.3em 0em 0em;
     -moz-border-radius:0.3em 0.3em 0em 0em;
     -webkit-border-radius:0.3em 0.3em 0em 0em;
 }
 .panel_btm {
+    border-top:1px solid #eee;
     border-radius:0em 0em 0.3em 0.3em;
     -moz-border-radius:0em 0em 0.3em 0.3em;
     -webkit-border-radius:0em 0em 0.3em 0.3em;
