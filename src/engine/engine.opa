@@ -155,15 +155,17 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix =
     tmp_pMatrix = mat4.create();
+    tmp_x = Float.of_int(viewport.w / 40)
+    tmp_y = Float.of_int(viewport.h / 40)
     match who with
     | {_YX} ->
-      do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
+      do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
       tmp_pMatrix
     | {_YZ} ->
-      do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
+      do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
       mat4.rotateY(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
     | {_ZX} ->
-      do mat4.ortho(-7., 7., -7., 7., -10., 10., tmp_pMatrix);
+      do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
       mat4.rotateX(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
     | {_3D} ->
       do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
@@ -286,7 +288,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
           rel = e.mouse_position_on_page;
           { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
         // now with gl the origin will be at the lower left corner
-        gl_pos = { x_px=min(max(m_pos.x_px,0), height-1); y_px=min(max(height - 1 - m_pos.y_px, 0), width-1) };
+        gl_pos = { x_px=min(max(m_pos.x_px,0), width-1); y_px=min(max(height - 1 - m_pos.y_px, 0), height-1) };
         cont(e) =
           do mode.set({normal});
           mouse_listener(e);
@@ -300,8 +302,8 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
         { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
-    //Clear screen and make everything light gray
-    do Webgl.clearColor(gl, 0.9, 0.9, 0.9, 1.0);
+    //Clear screen and make everything light gray // disabled to show png grid
+    //do Webgl.clearColor(gl, 0.875, 0.875, 0.875, 1.0);
     //we should do depth testing so that things drawn behind other
     //things should be hidden by the things in front of them).
     do Webgl.clearDepth(gl, 1.0);

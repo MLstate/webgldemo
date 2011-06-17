@@ -13,8 +13,8 @@ do timer42.start()
 */
 
 server_modeler_static_page(scene_url) =
-  width = 500;
-  height = 500;
+  width = 800;
+  height = 600;
   <div class="container">
     <div id=#{id_gui_area} onready={_ -> GuiModeler.init(scene_url, SHF(), #{id_gui_area}, width, height)}/>
     <div id=#{id_work_area} />
