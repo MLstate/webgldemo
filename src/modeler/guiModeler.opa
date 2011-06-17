@@ -63,8 +63,8 @@ type GuiModeler.t = {
 
   setup_menu(parent_sel, channel, s_tool) : void =
     f(some_tool) = match some_tool with
-      | {selection} -> (<>*Sel*</>, <>Cube</>)
-      | {add_cube} -> (<>Sel</>, <>*Cube*</>)
+      | {selection} -> (<span class="button active">Select</span>, <span class="button">Cube</span>)
+      | {add_cube} -> (<span class="button">Select</span>, <span class="button active">Cube</span>)
       end ;
     (id_a, id_b) = (Random.string(7), Random.string(7));
     on_tool_change = 
@@ -75,7 +75,7 @@ type GuiModeler.t = {
     do Observable.register(on_tool_change, s_tool);
     menu =
       s(x) = (_ -> Session.send(channel, {modeler_change_tool=x}));
-      <p><a id=#{id_a} onclick={s({selection})} >.</a> | <a id=#{id_b} onclick={s({add_cube})} >.</a></p>;
+      <div class="panel_top"><a id=#{id_a} onclick={s({selection})} ></a> <a id=#{id_b} onclick={s({add_cube})} ></a></div>;
     ignore(Dom.put_at_start(parent_sel, Dom.of_xhtml(menu)));
 
   setup_selection_view(parent_sel, channel, s_selection) : void =
@@ -95,14 +95,17 @@ type GuiModeler.t = {
               { si=(->not(Dom.is_empty(#{id}))); ~then_do; else_autoclean };
             Observable.register(on_sel_color_change, s_selection.color);
           s(new_color) = (_ -> Session.send(channel, {modeler_change_scene_selection_color; ~new_color}));
-          <label>Color: <span id=#{id} width="5px" height="5px" onclick={s(ColorFloat.random())} >*</span></label>
+          <div class="panel_btm">
+               <label>Color: <span id=#{id} width="5px" height="5px" onclick={s(ColorFloat.random())} >*</span>
+               </label>           
+          </div>
         end ;
       on_selection_change =
         then_do(new_selection) = Dom.transform([#{id}<- f(new_selection)]);
         { si=(->not(Dom.is_empty(#{id}))); ~then_do; else_autoclean };
       Observable.register(on_selection_change, s_selection.this);
     sel =
-      <div id=#{id} ></div>;
+      <div id=#{id}></div>;
     ignore(Dom.put_at_end(parent_sel, Dom.of_xhtml(sel)));
 
   
@@ -125,7 +128,7 @@ type GuiModeler.t = {
         do setup_menu(parent_sel, channel, the_subjects.tool);
         setup_selection_view(parent_sel, channel, the_subjects.selection);
     base =
-      <canvas width={width} height={height} id=#{id_canvas_canvas} onready={and_do} ></canvas>;
+      <div class="canvas_wrap"><canvas width={width} height={height} id=#{id_canvas_canvas} onready={and_do} ></canvas></div>;
     ignore(Dom.put_inside(parent_sel, Dom.of_xhtml(base)));
 
 }}
