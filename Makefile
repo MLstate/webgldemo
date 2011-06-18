@@ -5,8 +5,8 @@ run:
 build: main.exe
 
 main.exe:
-	cd plugins && make all
-	opa $(OPAOPT) --project-root '$(shell pwd)' --js-no-cleanup --js-no-global-inlining --js-no-local-inlining --js-no-local-renaming \
+	cd plugins && make all && cd -
+	opa $(OPAOPT) \
 		src/common/fresh.opa src/common/sessionExt.opa src/common/observer.opa src/common/colorFloat.opa \
 		plugins/requestAnimationFramePlugin.opp src/requestAnimationFrame.opa \
 		plugins/webglPlugin.opp src/webgl/webgl.opa \
