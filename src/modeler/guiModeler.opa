@@ -38,10 +38,10 @@ type GuiModeler.t = {
     { ~modeler; ~subjects; last_coord_fixer=Option.none };
 
   @private on_message(state : GuiModeler.t, message) = 
-    set_modeler(modeler) = { set={ state with ~modeler } } ;
+    _set_modeler(modeler) = { set={ state with ~modeler } } ;
     _set_subjects(subjects) = { set={ state with ~subjects } } ;
     set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
-    set_with_last(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler; last_coord_fixer=new_state.last_coord_fixer } };
+    _set_with_last(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler; last_coord_fixer=new_state.last_coord_fixer } };
     send_opatch(opatch) =
       m(patch) = { apply_patch; ~patch; address=state.modeler.address }; 
       Option.iter((p -> Session.send(central_modelers, m(p))), opatch);
@@ -106,7 +106,6 @@ type GuiModeler.t = {
                 WColorpicker.set_color(id, config, new_color, false);
               { si=(->not(Dom.is_empty(#{id}))); ~then_do; else_autoclean };
             Observable.register(on_sel_color_change, s_selection.color);
-          s(new_color) = (_ -> Session.send(channel, {modeler_change_scene_selection_color; ~new_color}));
           <div class="panel_btm">
                <label>Color: <div id=#{id}>{ WColorpicker.html(id, config) }</div></label>           
           </div>
