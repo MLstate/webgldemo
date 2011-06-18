@@ -1,0 +1,26 @@
+== Basic 3D collaborative cubic modeler in Opa ==
+
+Currently just a basic demo of WebGL in Opa.
+Could evolve into a real modeler.
+
+In a standard 4-views interface, you can add and move cubes.
+You can share your work in real time with other users.
+
+REQUIREMENTS
+* You need Opa !
+See http://opalang.org (currently on invitations, will be open soon)
+* You need a recent browser with WebGl capabilities.
+
+BUILDING
+ make
+
+LAUNCHING
+ ./main.exe
+(launches on port 8080)
+
+or
+ ./main.exe --server-port nnnn
+
+REMARK
+Currently, this project contains the demo and the bindings with WebGL.
+Of course, the bindings should go to Opa's standard library at some point.
