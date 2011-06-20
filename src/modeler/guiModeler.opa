@@ -102,7 +102,7 @@ type GuiModeler.t = {
         | {some=_} ->
           id = Random.string(7);
           config =
-            style = { WColorpicker.default_config_style with preview=WStyler.make_style(css { height:5px; width:5px; border:1px double black;}) };
+            style = { WColorpicker.default_config_style with preview=WStyler.make_style(css { height:10px; width:10px; border:1px double black;}) };
             s(a_color) =
               Session.send(channel, {modeler_change_scene_selection_color; new_color=ColorFloat.from_Color_color(a_color)});
             { WColorpicker.default_config with on_select=s; ~style };
