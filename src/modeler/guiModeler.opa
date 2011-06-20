@@ -116,7 +116,7 @@ type GuiModeler.t = {
           <div class="panel_btm">
             <em>Cube</em>
             <ul>
-              <li><label>Color: <div id=#{id}>{ WColorpicker.html(id, config) }</div></label></li>
+              <li><label>Color: <div id=#{id} style="display: inline-block" >{ WColorpicker.html(id, config) }</div></label></li>
               <li><a onclick={_ -> Session.send(channel, {modeler_delete_scene_selection})}>Remove me</a></li>
             </ul>
           </div>
