@@ -1,7 +1,7 @@
 
 all: build
 run:
-	./main.exe -d --display-logs --verbose 6
+	./main.exe #-d --display-logs --verbose 6
 build: main.exe
 
 main.exe:

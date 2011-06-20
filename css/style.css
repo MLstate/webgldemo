@@ -63,6 +63,8 @@ button:hover, input[type=submit]:hover, input[type=button]:hover, .button:hover,
     width:800px;
     margin: 0 auto;
 
+    text-align:left;
+    color: #000;
     border:1px solid #bbb;
 }
 .canvas_wrap {
