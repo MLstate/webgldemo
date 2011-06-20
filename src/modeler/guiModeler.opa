@@ -45,6 +45,10 @@ type GuiModeler.t = {
     send_opatch(opatch) =
       m(patch) = { apply_patch; ~patch; address=state.modeler.address }; 
       Option.iter((p -> Session.send(central_modelers, m(p))), opatch);
+    reset_subjects(modeler) =
+      subjects = { state.subjects with selection={ this=Observable.change_state(modeler.scene.selection, state.subjects.selection.this); 
+                                                   color=Observable.change_state( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) , state.subjects.selection.color) } };
+      { state with ~subjects; ~modeler };
     match message with
     | {click_on_scene; ~where; ~possible_target; ~last_coord_fixer} -> 
       (modeler, opatch) = Modeler.tool_use(state.modeler, where, possible_target);
@@ -52,9 +56,8 @@ type GuiModeler.t = {
       if Observable.get_state(state.subjects.selection.this) == modeler.scene.selection then
         { set={ state with ~modeler; ~last_coord_fixer } }
       else
-        subjects = { state.subjects with selection={ this=Observable.change_state(modeler.scene.selection, state.subjects.selection.this); 
-                                                     color=Observable.change_state( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) , state.subjects.selection.color) } };
-        set({ ~subjects; ~modeler; ~last_coord_fixer })
+        state = { reset_subjects(modeler) with ~last_coord_fixer };
+        set(state)
     | {modeler_change_tool=new_tool} ->
       modeler = Modeler.tool_change(state.modeler, new_tool);
       subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
@@ -68,6 +71,10 @@ type GuiModeler.t = {
       (modeler, opatch) = Modeler.do_possible_move(state.modeler, where);
       do send_opatch(opatch);
       { set={ state with ~modeler } }
+    | {modeler_delete_scene_selection} ->
+      (modeler, opatch) = Modeler.scene_delete_selection(state.modeler);
+      do send_opatch(opatch);
+      set(reset_subjects(modeler))
     end ;
 
   setup_menu(parent_sel, channel, s_tool) : void =
@@ -107,7 +114,11 @@ type GuiModeler.t = {
               { si=(->not(Dom.is_empty(#{id}))); ~then_do; else_autoclean };
             Observable.register(on_sel_color_change, s_selection.color);
           <div class="panel_btm">
-               <label>Color: <div id=#{id}>{ WColorpicker.html(id, config) }</div></label>           
+            <em>Cube</em>
+            <ul>
+              <li><label>Color: <div id=#{id}>{ WColorpicker.html(id, config) }</div></label></li>
+              <li><a onclick={_ -> Session.send(channel, {modeler_delete_scene_selection})}>Remove me</a></li>
+            </ul>
           </div>
         end ;
       on_selection_change =
