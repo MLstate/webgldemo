@@ -248,7 +248,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
               (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          _ = cont({ mousedown; pos=some_settings.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
+          _ = cont({ mousedown; pos=vec3.apply(pos_result, some_settings.clear_near_far, (_-> 0.0)); ~possible_target; coord_fixer=Option.some(g) });
           do last_viewbox.set(Option.some((this_viewbox, some_settings.clear_near_far, who)));
           { eng with last_coord_fixer=Option.some(g) }
         end)
@@ -269,7 +269,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
             | {out} | {_3D} -> void
             | _ -> 
               if this_viewbox.inbox(bad_pos) then
-                cont(this_clear_near_far(last_coord_fixer(bad_pos)))
+                cont(vec3.apply(last_coord_fixer(bad_pos), this_clear_near_far, (_-> 0.0)), this_clear_near_far)
               else
                 Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}")
             end;
@@ -307,7 +307,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener)
       _ = Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
       handler_mouseup(e) =
         gl_pos = recompute_pos(e.mouse_position_on_page);
-        cont(x) = mouse_listener({mouseup; pos=x});
+        cont(x, switch) = mouse_listener({mouseup; pos=x; ~switch});
         pending_mouseup.set(List.cons((gl_pos, cont), pending_mouseup.get()));
       _ = Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;

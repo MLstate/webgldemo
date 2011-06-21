@@ -6,17 +6,17 @@ type Scene.command = { add_cube; cube:Scene.objects } / { change_color; id: hidd
 type Scene.patch = { pid: patch_id;  command: Scene.command };
 
 type Scene.Client.command = 
-  { add_cube; where: {x: float; y: float; z:float } } 
+  { add_cube; where: vec3 } 
 / { selection_change_color; new_color: ColorFloat.color } 
 / { selection_change; possible_target: option(hidden_id) } 
-/ { possible_move; where: {x: float; y: float; z:float }}
+/ { possible_move; where: vec3; switch:({f1}/{f2}/{f3}) }
 / { selection_delete };
 
 type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scene };
 
 type Modeler.tool = {selection} / {add_cube} ;
 
-type Modeler.view = {m: mat4; clear_near_far: vec3 -> vec3};
+type Modeler.view = {m: mat4; clear_near_far: ({f1}/{f2}/{f3})};
 type Modeler.views = {_YX: Modeler.view; _YZ: Modeler.view; _ZX: Modeler.view; _3D: Modeler.view};
 
 type Modeler.modeler = {
@@ -81,13 +81,15 @@ Scene = {{
   command_to_scene_patch(scene, cmd : Scene.Client.command) : option(Scene.patch) = 
     match cmd with
     | { add_cube; ~where } -> 
-      command = { add_cube; cube={ cube=(where.x, where.y, where.z); color=ColorFloat.random(); id=scene.others.CPF() } } : Scene.command;
+      command = { add_cube; cube={ cube=where; color=ColorFloat.random(); id=scene.others.CPF() } } : Scene.command;
       Option.some({ pid=scene.others.CPF(); ~command})
     | { selection_change_color; ~new_color } -> 
       f(sel) = { pid=scene.others.CPF(); command={ change_color; id=sel.id ; ~new_color } };
       Option.map(f, scene.selection)
-    | { possible_move; ~where } ->
-      f(sel) = { pid=scene.others.CPF(); command={ move_object; where=(where.x, where.y, where.z); id=sel.id } };
+    | { possible_move; ~where; ~switch } ->
+      f(sel) = 
+        where = vec3.apply(where, switch, (u -> vec3.get(sel.cube, switch)));
+        { pid=scene.others.CPF(); command={ move_object; ~where; id=sel.id } };
       Option.map(f, scene.selection)
     | { selection_change; ... } -> Option.none
     | { selection_delete } -> 
@@ -131,7 +133,7 @@ Scene = {{
 
   selection_change_color(scene, new_color) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_change_color; ~new_color});
   
-  do_possible_move(scene, where) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, { possible_move; ~where });
+  do_possible_move_2d(scene, where, switch) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, { possible_move; ~where; ~switch });
 
   selection_delete(scene) : (Scene.Client.scene, option(Scene.patch)) = apply_command(scene, {selection_delete});
 
@@ -146,16 +148,16 @@ Modeler = {{
       tmp = rot(tmp);
       mat4.scale(tmp, vec3.from_public(scaler), tmp);
     tmp_scaler = 1. / 10.;
-    _YX = { m=g(identity, (tmp_scaler, tmp_scaler, 1.0)); clear_near_far=(pos -> { pos with f3=0.0 }) };  // we want the left border to be at -10, and the rigth at 10
-    _YZ = { m=g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (1.0, tmp_scaler, tmp_scaler)); clear_near_far=(pos -> { pos with f1=0.0 }) };
-    _ZX = { m=g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 1.0, tmp_scaler)); clear_near_far=(pos -> { pos with f2=0.0 }) };
+    _YX = { m=g(identity, (tmp_scaler, tmp_scaler, 1.0)); clear_near_far={f3} };  // we want the left border to be at -10, and the rigth at 10
+    _YZ = { m=g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (1.0, tmp_scaler, tmp_scaler)); clear_near_far={f1} };
+    _ZX = { m=g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 1.0, tmp_scaler)); clear_near_far={f2} };
     _3D =
       tmp_pMatrix = mat4.create();
       do mat4.perspective(45., 1. / ratio_h_w, 0.1, 100.0, tmp_pMatrix);
       c = mat4.create() ;
       do mat4.lookAt(vec3.from_public((10.0, 5.0, 15.0)), vec3.from_public((0., 0., 0.)), vec3.from_public((0.0, 1.0, 0.0)), c);
       do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
-      { m=tmp_pMatrix; clear_near_far=(pos -> { pos with f2=0.0 }) } ;
+      { m=tmp_pMatrix; clear_near_far={f2} } ;
     views = { ~_YX; ~_YZ; ~_ZX; ~_3D };
     { address=scene_url; ~scene; tool={selection}; ~client_id; ~views } ;
   empty(scene_url, client_id, ratio_h_w) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id, ratio_h_w);
@@ -177,10 +179,10 @@ Modeler = {{
     (scene, opatch) = `Scene.Client`.selection_change_color(modeler.scene, new_color);
     ({ modeler with ~scene }, opatch);
 
-  do_possible_move(modeler, where) : (Modeler.modeler, option(Scene.patch)) =
+  do_possible_move(modeler, where, switch) : (Modeler.modeler, option(Scene.patch)) =
     match modeler.tool with
-    | {selection} -> 
-      (scene, opatch) = `Scene.Client`.do_possible_move(modeler.scene, where);
+    | {selection} ->
+      (scene, opatch) = `Scene.Client`.do_possible_move_2d(modeler.scene, where, switch);
       ({ modeler with ~scene }, opatch)
     | {add_cube} -> (modeler, Option.none)
     end;

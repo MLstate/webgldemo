@@ -11,6 +11,17 @@ vec3 = {{
      from_public : vec3 -> vec3.private = %% glMatrixPlugin.vec3_private_from_public %% ;
      to_public : vec3.private -> vec3 = %% glMatrixPlugin.vec3_private_to_public %% ;
      str : vec3.private -> string = %% glMatrixPlugin.vec3_str %% ;
+     apply: vec3, ({f1}/{f2}/{f3}), (float -> float) -> vec3 = (src, where, f ->
+       match where : ({f1}/{f2}/{f3}) with
+       | {f1} -> { src with f1=f(src.f1) }
+       | {f2} -> { src with f2=f(src.f2) }
+       | {f3} -> { src with f3=f(src.f3) }
+       end);
+     get(src, switch) = match switch : ({f1}/{f2}/{f3}) with
+       | {f1} -> src.f1
+       | {f2} -> src.f2
+       | {f3} -> src.f3
+       end;
 }}
 
 vec4 = {{
