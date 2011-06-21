@@ -151,27 +151,34 @@ fetch_box(b, who) = match who with
   | {_3D} -> b._3D
   end ;
 
-drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
+compute_an_eye_into_ortho(mat, cs, clear_near_far) =
+  do mat4.translate(mat, vec3.from_public(cs.target), mat);
+  tmp = 
+    h = cs.eye.f3;
+    clear_near_far((h, h, h));
+  _ = mat4.scale(mat, vec3.from_public(tmp), mat);
+  mat ;
+
+drawScene_for_a_viewport(eng, who, viewport, camera_setting : Modeler.camera.setting, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix =
     tmp_pMatrix = mat4.create();
-    tmp_x = Float.of_int(viewport.w / 40)
-    tmp_y = Float.of_int(viewport.h / 40)
+    (tmp_x, tmp_y) = (1., float_of_int(viewport.h) / float_of_int(viewport.w)); // here w is always bigger and represent '2 * 1 unit'
     match who with
     | {_YX} ->
       do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
-      tmp_pMatrix
+      compute_an_eye_into_ortho(tmp_pMatrix, camera_setting, viewport.clear_near_far)
     | {_YZ} ->
       do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
-      mat4.rotateY(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
+      compute_an_eye_into_ortho(mat4.rotateY(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix), camera_setting, viewport.clear_near_far)
     | {_ZX} ->
       do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
-      mat4.rotateX(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix)
+      compute_an_eye_into_ortho(mat4.rotateX(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix), camera_setting, viewport.clear_near_far)
     | {_3D} ->
       do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
       c = mat4.create() ;
-      do mat4.lookAt(vec3.from_public(eye), vec3.from_public((0.0, 0.0, 0.0)), vec3.from_public(up), c);
+      do mat4.lookAt(vec3.from_public(camera_setting.eye), vec3.from_public(camera_setting.target), vec3.from_public(up), c);
       do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
       tmp_pMatrix
     end ;
@@ -213,7 +220,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   (pMatrix, mvMatrix)
 ;
 
-@private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_mode, get_pending_mouseup_and_clean) =
+@private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views), get_mode, get_pending_mouseup_and_clean) =
   viewbox = setup_boxes(org_eng) ;
   last_viewbox = Mutable.make(Option.none);
   rec aux(eng:engine) =
@@ -230,6 +237,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
         selection_scene = Option.switch((the -> [ f(true, the) ]), List.empty, tmp.selection);
         List.append(selection_scene, others_scene);
       ({ eng with ~scene }, scene);
+    views = get_camera_setting();
     eng = 
       match get_mode() with
       | {pick=pos; ~cont} -> (
@@ -238,7 +246,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
           //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
           this_viewbox = fetch_box(viewbox, who);
-          (pMatrix, s) = drawScene_for_a_viewport(eng, who, this_viewbox, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {pick});
+          (pMatrix, s) = drawScene_for_a_viewport(eng, who, this_viewbox, fetch_box(views, who), (0.0, 1.0, 0.0), scene, {pick});
           mvMatrix = Stack.peek(s) ;
           do mat4.multiply(pMatrix, mvMatrix, mvMatrix);
           do mat4.inverse(mvMatrix, mvMatrix);
@@ -273,10 +281,10 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
         end)
       | {normal} ->
         do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, (0.0, 0.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, (-15.0, 0.0, 0.0), (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, (0.0, -15.0, 0.0), (0.0, 0.0, 1.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, (10.0, 5.0, 15.0), (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX, (0.0, 0.0, 1.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D, (0.0, 1.0, 0.0), scene, {normal});
         eng
       end ;
     do 
@@ -297,7 +305,7 @@ drawScene_for_a_viewport(eng, who, viewport, eye, up, scene, mode) =
   aux(org_eng) 
 ;
 
-initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
+initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener) : outcome =
   match WebGLUtils.setupWebGL_with_custom_failure(Dom.of_selection(canvas_sel)) with
   | { ok=context } ->
     mode = Mutable.make({normal});
@@ -346,7 +354,7 @@ initGL(canvas_sel, width, height, get_scene, mouse_listener) : outcome =
         tmp = List.rev(pending_mouseup.get());
         do pending_mouseup.set(List.empty);
         tmp;
-      drawScene_and_register(eng, get_scene, mode.get, get_pending_mouseup_and_clean);
+      drawScene_and_register(eng, get_scene, get_camera_setting, mode.get, get_pending_mouseup_and_clean);
     { success }
   | { ~ko } -> { failure=ko }
   end ;

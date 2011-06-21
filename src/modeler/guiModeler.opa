@@ -135,10 +135,10 @@ type GuiModeler.t = {
     fail_msg = 
       <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
     and_do(_) =
-      (channel, get_scene, get_subjects) =
+      (channel, get_scene, get_subjects, get_camera_setting) =
         (channel, sync_channel, get_state) = SessionExt.make_2_side(empty(scene_url, client_id), on_message, Sync.on_message);
         do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
-        (channel, (-> get_state().modeler.scene), (->get_state().subjects)) ;
+        (channel, (-> get_state().modeler.scene), (->get_state().subjects), (->get_state().modeler.views)) ;
       mouse_listener(e) = match e with
         | { mousedown; ~pos; ~possible_target; ~coord_fixer } -> 
           Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target; last_coord_fixer=coord_fixer})
@@ -146,7 +146,7 @@ type GuiModeler.t = {
           msg = {modeler_apply_possible_move; where={x=pos.f1; y=pos.f2; z=pos.f3} };
           Session.send(channel, msg)
         end ;
-      res = initGL(#{id_canvas_canvas}, width, height, get_scene, mouse_listener) ;
+      res = initGL(#{id_canvas_canvas}, width, height, get_scene, get_camera_setting, mouse_listener) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
       else 
         the_subjects = get_subjects();

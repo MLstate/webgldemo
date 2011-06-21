@@ -16,11 +16,15 @@ type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scen
 
 type Modeler.tool = {selection} / {add_cube} ;
 
+type Modeler.camera.setting = { target: vec3; eye: vec3 };
+type Modeler.views = {_YX: Modeler.camera.setting; _YZ: Modeler.camera.setting; _ZX: Modeler.camera.setting; _3D: Modeler.camera.setting};
+
 type Modeler.modeler = {
   address: string;
   scene: Scene.Client.scene;
   tool: Modeler.tool;
-  client_id: int
+  client_id: int;
+  views: Modeler.views;
 } ;
 
 Scene = {{
@@ -134,7 +138,11 @@ Scene = {{
 }} ;
 
 Modeler = {{
-  load(scene, scene_url, client_id) : Modeler.modeler = { address=scene_url; ~scene; tool={selection}; ~client_id } ;
+  load(scene, scene_url, client_id) : Modeler.modeler =
+    tmp = 1./10.; // we want the left border to be at -10, and the rigth at 10
+    views = { _YX={ target=(0.,0.,0.); eye=(0.0, 0.0, tmp) }; _YZ={ target=(0.,0.,0.); eye=(0.0, 0.0, tmp) }; 
+      _ZX={ target=(0.,0.,0.); eye=(0.0, 0.0, tmp) }; _3D={ target=(0., 0., 0.) ; eye=(10.0, 5.0, 15.0) } };
+    { address=scene_url; ~scene; tool={selection}; ~client_id; ~views } ;
   empty(scene_url, client_id) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id);
 
   tool_use(modeler, where, possible_target) : (Modeler.modeler, option(Scene.patch)) =
