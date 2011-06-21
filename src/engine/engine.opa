@@ -120,10 +120,9 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
 ;
 
 setup_boxes(eng) =
-  cnf_x(pos) = { pos with f1=0.0 }; cnf_y(pos) = { pos with f2=0.0 }; cnf_z(pos) = { pos with f3=0.0 };
-  g(x:int, y:int, w:int, h:int, clear_near_far) =
+  g(x:int, y:int, w:int, h:int) =
     inbox(pos) = (pos.x_px >= x) && (pos.y_px >= y) && (pos.x_px < (w + x)) && (pos.y_px < (h + y));
-    { ~x; ~y; ~w; ~h; ~inbox; ~clear_near_far } ;
+    { ~x; ~y; ~w; ~h; ~inbox } ;
   compute_left_right(x) = if ((mod(x, 2)) == 0) then
       a = (x / 2);
       ((a, a), 0)
@@ -132,8 +131,8 @@ setup_boxes(eng) =
       ((b, b+1), 0);
   ((w_l, w_r), e_w) = compute_left_right(eng.canvas.width);
   ((h_u, h_d), e_h) = compute_left_right(eng.canvas.height);
-  { _YX=g(0, h_d+e_h, w_l, h_u, cnf_z); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u, cnf_x);
-    _ZX=g(0, 0, w_l, h_d, cnf_y);       _3D=g(w_l+e_w, 0, w_r, h_d, cnf_y) }
+  { _YX=g(0, h_d+e_h, w_l, h_u); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u);
+    _ZX=g(0, 0, w_l, h_d);       _3D=g(w_l+e_w, 0, w_r, h_d) }
 ;
 
 which_box(b, pos) =
@@ -151,13 +150,6 @@ fetch_box(b, who) = match who with
   | {_3D} -> b._3D
   end ;
 
-compute_an_eye_into_ortho(mat, cs, clear_near_far) =
-  do mat4.translate(mat, vec3.from_public(cs.target), mat);
-  tmp = 
-    h = cs.eye.f3;
-    clear_near_far((h, h, h));
-  _ = mat4.scale(mat, vec3.from_public(tmp), mat);
-  mat ;
 
 drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
@@ -257,7 +249,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
           _ = cont({ mousedown; pos=some_settings.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
-          do last_viewbox.set(Option.some(({ this_viewbox with clear_near_far=some_settings.clear_near_far}, who)));
+          do last_viewbox.set(Option.some((this_viewbox, some_settings.clear_near_far, who)));
           { eng with last_coord_fixer=Option.some(g) }
         end)
       | {normal} ->
@@ -272,12 +264,12 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
       todo : list = get_pending_mouseup_and_clean();
       f((bad_pos, cont)) : void = 
         g(last_coord_fixer) =
-          with_v((this_viewbox, this_who)) =
+          with_v((this_viewbox, this_clear_near_far, this_who)) =
             match this_who with
             | {out} | {_3D} -> void
             | _ -> 
               if this_viewbox.inbox(bad_pos) then
-                cont(this_viewbox.clear_near_far(last_coord_fixer(bad_pos)))
+                cont(this_clear_near_far(last_coord_fixer(bad_pos)))
               else
                 Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}")
             end;
