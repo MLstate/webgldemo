@@ -68,8 +68,8 @@ type GuiModeler.t = {
       do send_opatch(opatch);
       subjects = { state.subjects with selection.color=Observable.change_state(new_color, state.subjects.selection.color) };
       set({ ~subjects; ~modeler})
-    | {modeler_apply_possible_move; ~where } -> 
-      (modeler, opatch) = Modeler.do_possible_move(state.modeler, where);
+    | {modeler_apply_possible_move; ~where; ~switch } -> 
+      (modeler, opatch) = Modeler.do_possible_move(state.modeler, where, switch);
       do send_opatch(opatch);
       { set={ state with ~modeler } }
     | {modeler_delete_scene_selection} ->
@@ -142,9 +142,9 @@ type GuiModeler.t = {
         (channel, (-> get_state().modeler.scene), (->get_state().subjects), (->get_state().modeler.views)) ;
       mouse_listener(e) = match e with
         | { mousedown; ~pos; ~possible_target; ~coord_fixer } -> 
-          Session.send(channel, {click_on_scene; where={x=pos.f1; y=pos.f2; z=pos.f3}; ~possible_target; last_coord_fixer=coord_fixer})
-        | { mouseup; ~pos } -> 
-          msg = {modeler_apply_possible_move; where={x=pos.f1; y=pos.f2; z=pos.f3} };
+          Session.send(channel, {click_on_scene; where=pos; ~possible_target; last_coord_fixer=coord_fixer})
+        | { mouseup; ~pos; ~switch } -> 
+          msg = {modeler_apply_possible_move; where=pos; ~switch };
           Session.send(channel, msg)
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, get_camera_setting, mouse_listener) ;

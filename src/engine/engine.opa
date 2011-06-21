@@ -120,10 +120,9 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
 ;
 
 setup_boxes(eng) =
-  cnf_x(pos) = { pos with f1=0.0 }; cnf_y(pos) = { pos with f2=0.0 }; cnf_z(pos) = { pos with f3=0.0 };
-  g(x:int, y:int, w:int, h:int, clear_near_far) =
+  g(x:int, y:int, w:int, h:int) =
     inbox(pos) = (pos.x_px >= x) && (pos.y_px >= y) && (pos.x_px < (w + x)) && (pos.y_px < (h + y));
-    { ~x; ~y; ~w; ~h; ~inbox; ~clear_near_far } ;
+    { ~x; ~y; ~w; ~h; ~inbox } ;
   compute_left_right(x) = if ((mod(x, 2)) == 0) then
       a = (x / 2);
       ((a, a), 0)
@@ -132,8 +131,8 @@ setup_boxes(eng) =
       ((b, b+1), 0);
   ((w_l, w_r), e_w) = compute_left_right(eng.canvas.width);
   ((h_u, h_d), e_h) = compute_left_right(eng.canvas.height);
-  { _YX=g(0, h_d+e_h, w_l, h_u, cnf_z); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u, cnf_x);
-    _ZX=g(0, 0, w_l, h_d, cnf_y);       _3D=g(w_l+e_w, 0, w_r, h_d, cnf_y) }
+  { _YX=g(0, h_d+e_h, w_l, h_u); _YZ=g(w_l+e_w, h_d+e_h, w_r, h_u);
+    _ZX=g(0, 0, w_l, h_d);       _3D=g(w_l+e_w, 0, w_r, h_d) }
 ;
 
 which_box(b, pos) =
@@ -151,13 +150,6 @@ fetch_box(b, who) = match who with
   | {_3D} -> b._3D
   end ;
 
-compute_an_eye_into_ortho(mat, cs, clear_near_far) =
-  do mat4.translate(mat, vec3.from_public(cs.target), mat);
-  tmp = 
-    h = cs.eye.f3;
-    clear_near_far((h, h, h));
-  _ = mat4.scale(mat, vec3.from_public(tmp), mat);
-  mat ;
 
 drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
@@ -227,8 +219,9 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
           //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
           this_viewbox = fetch_box(viewbox, who);
-          _ = drawScene_for_a_viewport(eng, who, this_viewbox, fetch_box(views, who), (0.0, 1.0, 0.0), scene, {pick});
-          mvMatrix = mat4.copy(fetch_box(get_camera_setting(), who)) ;
+          some_settings = fetch_box(views, who);
+          mvMatrix = mat4.copy(some_settings.m) ;
+          _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, (0.0, 1.0, 0.0), scene, {pick});
           do mat4.inverse(mvMatrix, mvMatrix);
           g(pos : Dom.dimensions) : vec3 =
             x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
@@ -255,28 +248,28 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
               (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          _ = cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
-          do last_viewbox.set(Option.some((this_viewbox, who)));
+          _ = cont({ mousedown; pos=vec3.apply(pos_result, some_settings.clear_near_far, (_-> 0.0)); ~possible_target; coord_fixer=Option.some(g) });
+          do last_viewbox.set(Option.some((this_viewbox, some_settings.clear_near_far, who)));
           { eng with last_coord_fixer=Option.some(g) }
         end)
       | {normal} ->
         do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX, (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ, (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX, (0.0, 0.0, 1.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, (0.0, 0.0, 1.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, (0.0, 1.0, 0.0), scene, {normal});
         eng
       end ;
     do 
       todo : list = get_pending_mouseup_and_clean();
       f((bad_pos, cont)) : void = 
         g(last_coord_fixer) =
-          with_v((this_viewbox, this_who)) =
+          with_v((this_viewbox, this_clear_near_far, this_who)) =
             match this_who with
             | {out} | {_3D} -> void
             | _ -> 
               if this_viewbox.inbox(bad_pos) then
-                cont(this_viewbox.clear_near_far(last_coord_fixer(bad_pos)))
+                cont(vec3.apply(last_coord_fixer(bad_pos), this_clear_near_far, (_-> 0.0)), this_clear_near_far)
               else
                 Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}")
             end;
@@ -314,7 +307,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener)
       _ = Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
       handler_mouseup(e) =
         gl_pos = recompute_pos(e.mouse_position_on_page);
-        cont(x) = mouse_listener({mouseup; pos=x});
+        cont(x, switch) = mouse_listener({mouseup; pos=x; ~switch});
         pending_mouseup.set(List.cons((gl_pos, cont), pending_mouseup.get()));
       _ = Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;
