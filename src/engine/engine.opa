@@ -256,7 +256,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
           _ = cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
-          do last_viewbox.set(Option.some(this_viewbox));
+          do last_viewbox.set(Option.some((this_viewbox, who)));
           { eng with last_coord_fixer=Option.some(g) }
         end)
       | {normal} ->
@@ -271,11 +271,15 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
       todo : list = get_pending_mouseup_and_clean();
       f((bad_pos, cont)) : void = 
         g(last_coord_fixer) =
-          with_v(this_viewbox) =
-            if this_viewbox.inbox(bad_pos) then
-              cont(this_viewbox.clear_near_far(last_coord_fixer(bad_pos)))
-            else
-              Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}");
+          with_v((this_viewbox, this_who)) =
+            match this_who with
+            | {out} | {_3D} -> void
+            | _ -> 
+              if this_viewbox.inbox(bad_pos) then
+                cont(this_viewbox.clear_near_far(last_coord_fixer(bad_pos)))
+              else
+                Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}")
+            end;
           Option.iter(with_v, last_viewbox.get());
         Option.iter(g, eng.last_coord_fixer);
       List.iter(f, todo);
