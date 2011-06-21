@@ -227,8 +227,9 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
           //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
           this_viewbox = fetch_box(viewbox, who);
-          _ = drawScene_for_a_viewport(eng, who, this_viewbox, fetch_box(views, who), (0.0, 1.0, 0.0), scene, {pick});
-          mvMatrix = mat4.copy(fetch_box(get_camera_setting(), who)) ;
+          some_settings = fetch_box(views, who);
+          mvMatrix = mat4.copy(some_settings.m) ;
+          _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, (0.0, 1.0, 0.0), scene, {pick});
           do mat4.inverse(mvMatrix, mvMatrix);
           g(pos : Dom.dimensions) : vec3 =
             x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
@@ -255,16 +256,16 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
               (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
             Option.map((u -> u.id), List.find(f, eng.scene));
           do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          _ = cont({ mousedown; pos=this_viewbox.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
-          do last_viewbox.set(Option.some((this_viewbox, who)));
+          _ = cont({ mousedown; pos=some_settings.clear_near_far(pos_result); ~possible_target; coord_fixer=Option.some(g) });
+          do last_viewbox.set(Option.some(({ this_viewbox with clear_near_far=some_settings.clear_near_far}, who)));
           { eng with last_coord_fixer=Option.some(g) }
         end)
       | {normal} ->
         do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX, (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ, (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX, (0.0, 0.0, 1.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, (0.0, 1.0, 0.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, (0.0, 0.0, 1.0), scene, {normal});
+        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, (0.0, 1.0, 0.0), scene, {normal});
         eng
       end ;
     do 

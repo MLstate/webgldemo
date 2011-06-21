@@ -16,7 +16,8 @@ type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scen
 
 type Modeler.tool = {selection} / {add_cube} ;
 
-type Modeler.views = {_YX: mat4; _YZ: mat4; _ZX: mat4; _3D: mat4};
+type Modeler.view = {m: mat4; clear_near_far: vec3 -> vec3};
+type Modeler.views = {_YX: Modeler.view; _YZ: Modeler.view; _ZX: Modeler.view; _3D: Modeler.view};
 
 type Modeler.modeler = {
   address: string;
@@ -145,16 +146,16 @@ Modeler = {{
       tmp = rot(tmp);
       mat4.scale(tmp, vec3.from_public(scaler), tmp);
     tmp_scaler = 1. / 10.;
-    _YX = g(identity, (tmp_scaler, tmp_scaler, 1.0));  // we want the left border to be at -10, and the rigth at 10
-    _YZ = g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (1.0, tmp_scaler, tmp_scaler));
-    _ZX = g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 1.0, tmp_scaler));
+    _YX = { m=g(identity, (tmp_scaler, tmp_scaler, 1.0)); clear_near_far=(pos -> { pos with f3=0.0 }) };  // we want the left border to be at -10, and the rigth at 10
+    _YZ = { m=g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (1.0, tmp_scaler, tmp_scaler)); clear_near_far=(pos -> { pos with f1=0.0 }) };
+    _ZX = { m=g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 1.0, tmp_scaler)); clear_near_far=(pos -> { pos with f2=0.0 }) };
     _3D =
       tmp_pMatrix = mat4.create();
       do mat4.perspective(45., 1. / ratio_h_w, 0.1, 100.0, tmp_pMatrix);
       c = mat4.create() ;
       do mat4.lookAt(vec3.from_public((10.0, 5.0, 15.0)), vec3.from_public((0., 0., 0.)), vec3.from_public((0.0, 1.0, 0.0)), c);
       do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
-      tmp_pMatrix ;
+      { m=tmp_pMatrix; clear_near_far=(pos -> { pos with f2=0.0 }) } ;
     views = { ~_YX; ~_YZ; ~_ZX; ~_3D };
     { address=scene_url; ~scene; tool={selection}; ~client_id; ~views } ;
   empty(scene_url, client_id, ratio_h_w) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id, ratio_h_w);
