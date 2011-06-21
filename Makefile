@@ -3,6 +3,10 @@ all: build
 run:
 	./main.exe #-d --display-logs --verbose 6
 build: main.exe
+tar:	build
+	tar -czf main.exe.tar.gz main.exe
+publish: tar
+	rsync -vah --progress main.exe.tar.gz webgldemo@webgldemo.iserver.pro:
 
 main.exe:
 	cd plugins && make all && cd -
@@ -23,6 +27,6 @@ main.exe:
 
 clean:
 	cd plugins && make clean
-	rm -rf _build _tracks \.mlstate main.exe src/main.exe *\.opx *\.opx.broken
+	rm -rf _build _tracks \.mlstate main.exe src/main.exe *\.opx *\.opx.broken main.exe.tar.gz
 
 .PHONY: all run build clean main.exe
