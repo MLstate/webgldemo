@@ -145,9 +145,9 @@ Modeler = {{
       tmp = rot(tmp);
       mat4.scale(tmp, vec3.from_public(scaler), tmp);
     tmp_scaler = 1. / 10.;
-    _YX = g(identity, (tmp_scaler, tmp_scaler, 0.0));  // we want the left border to be at -10, and the rigth at 10
-    _YZ = g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (0.0, tmp_scaler, tmp_scaler));
-    _ZX = g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 0.0, tmp_scaler));
+    _YX = g(identity, (tmp_scaler, tmp_scaler, 1.0));  // we want the left border to be at -10, and the rigth at 10
+    _YZ = g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (1.0, tmp_scaler, tmp_scaler));
+    _ZX = g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 1.0, tmp_scaler));
     _3D =
       tmp_pMatrix = mat4.create();
       do mat4.perspective(45., 1. / ratio_h_w, 0.1, 100.0, tmp_pMatrix);
