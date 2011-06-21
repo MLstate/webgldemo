@@ -16,8 +16,7 @@ type Scene.Client.scene = { selection: option(Scene.objects); others: Scene.scen
 
 type Modeler.tool = {selection} / {add_cube} ;
 
-type Modeler.camera.setting = { target: vec3; eye: vec3 };
-type Modeler.views = {_YX: Modeler.camera.setting; _YZ: Modeler.camera.setting; _ZX: Modeler.camera.setting; _3D: Modeler.camera.setting};
+type Modeler.views = {_YX: mat4; _YZ: mat4; _ZX: mat4; _3D: mat4};
 
 type Modeler.modeler = {
   address: string;
@@ -138,12 +137,27 @@ Scene = {{
 }} ;
 
 Modeler = {{
-  load(scene, scene_url, client_id) : Modeler.modeler =
-    tmp = 1./10.; // we want the left border to be at -10, and the rigth at 10
-    views = { _YX={ target=(0.,0.,0.); eye=(0.0, 0.0, tmp) }; _YZ={ target=(0.,0.,0.); eye=(0.0, 0.0, tmp) }; 
-      _ZX={ target=(0.,0.,0.); eye=(0.0, 0.0, tmp) }; _3D={ target=(0., 0., 0.) ; eye=(10.0, 5.0, 15.0) } };
+  load(scene, scene_url, client_id, ratio_h_w) : Modeler.modeler =
+    g(rot, scaler) =
+      tmp = mat4.create();
+      tmp_x = 1.;
+      do mat4.ortho(-tmp_x, tmp_x, -ratio_h_w, ratio_h_w, -10., 10., tmp);
+      tmp = rot(tmp);
+      mat4.scale(tmp, vec3.from_public(scaler), tmp);
+    tmp_scaler = 1. / 10.;
+    _YX = g(identity, (tmp_scaler, tmp_scaler, 0.0));  // we want the left border to be at -10, and the rigth at 10
+    _YZ = g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (0.0, tmp_scaler, tmp_scaler));
+    _ZX = g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 0.0, tmp_scaler));
+    _3D =
+      tmp_pMatrix = mat4.create();
+      do mat4.perspective(45., 1. / ratio_h_w, 0.1, 100.0, tmp_pMatrix);
+      c = mat4.create() ;
+      do mat4.lookAt(vec3.from_public((10.0, 5.0, 15.0)), vec3.from_public((0., 0., 0.)), vec3.from_public((0.0, 1.0, 0.0)), c);
+      do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
+      tmp_pMatrix ;
+    views = { ~_YX; ~_YZ; ~_ZX; ~_3D };
     { address=scene_url; ~scene; tool={selection}; ~client_id; ~views } ;
-  empty(scene_url, client_id) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id);
+  empty(scene_url, client_id, ratio_h_w) : Modeler.modeler = load(`Scene.Client`.empty(client_id), scene_url, client_id, ratio_h_w);
 
   tool_use(modeler, where, possible_target) : (Modeler.modeler, option(Scene.patch)) =
     do Log.info("Modeler", "using tool at ({where}) perhaps on the target: '{possible_target}' with tool: '{modeler.tool}'");

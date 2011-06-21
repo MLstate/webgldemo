@@ -8,6 +8,7 @@ type GuiModeler.t = {
     selection: { this: subject(option(Scene.objects)); color: subject(ColorFloat.color) }
     };
   last_coord_fixer: option(Dom.dimensions -> vec3)
+  width: int; height: int
 } ;
 
 @client GuiModeler = {{
@@ -18,7 +19,7 @@ type GuiModeler.t = {
       set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
       match message : Central.Modelers.sync.message with
       | {load=a_scene} -> 
-        modeler = Modeler.load(`Scene.Client`.load(a_scene, state.modeler.client_id), state.modeler.address, state.modeler.client_id);
+        modeler = Modeler.load(`Scene.Client`.load(a_scene, state.modeler.client_id), state.modeler.address, state.modeler.client_id, float_of_int(state.height) / float_of_int(state.width));
         subjects = 
           { state.subjects with selection={ 
               this=Observable.change_state(modeler.scene.selection, state.subjects.selection.this); 
@@ -32,10 +33,10 @@ type GuiModeler.t = {
       end ;
   }}
 
-  empty(scene_url, client_id) : GuiModeler.t = 
-    modeler = Modeler.empty(scene_url, client_id);
+  empty(scene_url, client_id, width, height) : GuiModeler.t = 
+    modeler = Modeler.empty(scene_url, client_id, float_of_int(height) / float_of_int(width));
     subjects = { tool=Observable.make(modeler.tool); selection={ this=Observable.make(modeler.scene.selection); color=Observable.make( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) ) } };
-    { ~modeler; ~subjects; last_coord_fixer=Option.none };
+    { ~modeler; ~subjects; last_coord_fixer=Option.none; ~width; ~height };
 
   @private on_message(state : GuiModeler.t, message) = 
     _set_modeler(modeler) = { set={ state with ~modeler } } ;
@@ -136,7 +137,7 @@ type GuiModeler.t = {
       <>It seems that your browser and/or graphics card are incompatible with Webgl.<a href="http://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" >Learn a little more about webgl support</a></> ;
     and_do(_) =
       (channel, get_scene, get_subjects, get_camera_setting) =
-        (channel, sync_channel, get_state) = SessionExt.make_2_side(empty(scene_url, client_id), on_message, Sync.on_message);
+        (channel, sync_channel, get_state) = SessionExt.make_2_side(empty(scene_url, client_id, width, height), on_message, Sync.on_message);
         do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
         (channel, (-> get_state().modeler.scene), (->get_state().subjects), (->get_state().modeler.views)) ;
       mouse_listener(e) = match e with

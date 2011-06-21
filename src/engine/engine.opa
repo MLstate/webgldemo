@@ -159,29 +159,10 @@ compute_an_eye_into_ortho(mat, cs, clear_near_far) =
   _ = mat4.scale(mat, vec3.from_public(tmp), mat);
   mat ;
 
-drawScene_for_a_viewport(eng, who, viewport, camera_setting : Modeler.camera.setting, up, scene, mode) =
+drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
-  pMatrix =
-    tmp_pMatrix = mat4.create();
-    (tmp_x, tmp_y) = (1., float_of_int(viewport.h) / float_of_int(viewport.w)); // here w is always bigger and represent '2 * 1 unit'
-    match who with
-    | {_YX} ->
-      do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
-      compute_an_eye_into_ortho(tmp_pMatrix, camera_setting, viewport.clear_near_far)
-    | {_YZ} ->
-      do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
-      compute_an_eye_into_ortho(mat4.rotateY(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix), camera_setting, viewport.clear_near_far)
-    | {_ZX} ->
-      do mat4.ortho(-tmp_x, tmp_x, -tmp_y, tmp_y, -10., 10., tmp_pMatrix);
-      compute_an_eye_into_ortho(mat4.rotateX(tmp_pMatrix, (90. * Math.PI / 180.), tmp_pMatrix), camera_setting, viewport.clear_near_far)
-    | {_3D} ->
-      do mat4.perspective(45., float_of_int(eng.canvas.width) / float_of_int(eng.canvas.height), 0.1, 100.0, tmp_pMatrix);
-      c = mat4.create() ;
-      do mat4.lookAt(vec3.from_public(camera_setting.eye), vec3.from_public(camera_setting.target), vec3.from_public(up), c);
-      do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
-      tmp_pMatrix
-    end ;
+  pMatrix = camera_setting;
   mvMatrix = 
     tmp_mvMatrix = mat4.create();
     do mat4.identity(tmp_mvMatrix);
