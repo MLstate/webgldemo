@@ -150,6 +150,10 @@ fetch_box(b, who) = match who with
   | {_3D} -> b._3D
   end ;
 
+rel_pos_in_box(this_viewbox, pos) =
+  x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
+  y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
+  (x, y);
 
 drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
@@ -193,8 +197,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
   (pMatrix, mvMatrix)
 ;
 
-@private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views), get_mode, get_pending_mouseup_and_clean) =
-  viewbox = setup_boxes(org_eng) ;
+@private drawScene_and_register(org_eng, viewbox, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views), get_mode, get_pending_mouseup_and_clean) =
   last_viewbox = Mutable.make(Option.none);
   to_be_pick = Mutable.make(List.empty);
   rec aux(eng:engine) =
@@ -290,7 +293,16 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
     mode = Mutable.make({normal});
     pending_mouseup = Mutable.make(List.empty);
     is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
-    _ =
+    gl = context;
+    eng : engine =
+      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel;
+        last_coord_fixer=Option.none });
+      start = { start with shaderProgram=initShaders(gl) };
+      start = { start with framePickBuffer=initPickBuffer(start) } ;
+      { start with static_buffers.repcoords=
+        { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
+    viewbox = setup_boxes(eng) ;
+    {} =
       recompute_pos(rel_mouse_position_on_page) =
         m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
           c_pos = Dom.get_offset(canvas_sel);
@@ -313,14 +325,6 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         pending_mouseup.set(List.cons((gl_pos, cont), pending_mouseup.get()));
       _ = Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;
-    gl = context;
-    eng : engine =
-      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel;
-        last_coord_fixer=Option.none });
-      start = { start with shaderProgram=initShaders(gl) };
-      start = { start with framePickBuffer=initPickBuffer(start) } ;
-      { start with static_buffers.repcoords=
-        { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
     //Clear screen and make everything light gray // disabled to show png grid
     //do Webgl.clearColor(gl, 0.875, 0.875, 0.875, 1.0);
     //we should do depth testing so that things drawn behind other
@@ -333,7 +337,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         tmp = List.rev(pending_mouseup.get());
         do pending_mouseup.set(List.empty);
         tmp;
-      gpu_picker_register = drawScene_and_register(eng, get_scene, get_camera_setting, mode.get, get_pending_mouseup_and_clean);
+      gpu_picker_register = drawScene_and_register(eng, viewbox, get_scene, get_camera_setting, mode.get, get_pending_mouseup_and_clean);
       do support_gpu_picking.set(Option.some(gpu_picker_register));
       void
     { success }
