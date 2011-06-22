@@ -196,6 +196,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
 @private drawScene_and_register(org_eng, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views), get_mode, get_pending_mouseup_and_clean) =
   viewbox = setup_boxes(org_eng) ;
   last_viewbox = Mutable.make(Option.none);
+  to_be_pick = Mutable.make(List.empty);
   rec aux(eng:engine) =
     gl = eng.context;
     (eng, scene) = 
@@ -279,10 +280,11 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
     void
     ;
-  aux(org_eng) 
+  do aux(org_eng);
+  (a -> to_be_pick.set(List.cons(a, to_be_pick.get())))
 ;
 
-initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener) : outcome =
+initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener, support_gpu_picking) : outcome =
   match WebGLUtils.setupWebGL_with_custom_failure(Dom.of_selection(canvas_sel)) with
   | { ok=context } ->
     mode = Mutable.make({normal});
@@ -331,7 +333,9 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener)
         tmp = List.rev(pending_mouseup.get());
         do pending_mouseup.set(List.empty);
         tmp;
-      drawScene_and_register(eng, get_scene, get_camera_setting, mode.get, get_pending_mouseup_and_clean);
+      gpu_picker_register = drawScene_and_register(eng, get_scene, get_camera_setting, mode.get, get_pending_mouseup_and_clean);
+      do support_gpu_picking.set(Option.some(gpu_picker_register));
+      void
     { success }
   | { ~ko } -> { failure=ko }
   end ;
