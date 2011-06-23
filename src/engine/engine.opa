@@ -312,18 +312,32 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         gl_pos = { x_px=min(max(m_pos.x_px,0), width-1); y_px=min(max(height - 1 - m_pos.y_px, 0), height-1) };
         do Log.debug("P", "[({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
         gl_pos;
-      handler_mousedown(e) =
-        gl_pos = recompute_pos(e.mouse_position_on_page);
-        cont(e) =
-          do mode.set({normal});
-          mouse_listener(e);
-        if not(is_picking(mode.get())) then mode.set({pick=gl_pos; ~cont}) else void;
-      _ = Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
-      handler_mouseup(e) =
-        gl_pos = recompute_pos(e.mouse_position_on_page);
-        cont(x, switch) = mouse_listener({mouseup; pos=x; ~switch});
-        pending_mouseup.set(List.cons((gl_pos, cont), pending_mouseup.get()));
-      _ = Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
+      compute_rel_quarter_pos(abs_full_pos) =
+        match which_box(viewbox, abs_full_pos) with
+        | {out} -> ((0., 0., 0.), {f1})
+        | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
+          this_viewbox = fetch_box(viewbox, who);
+          some_settings = fetch_box(get_camera_setting(), who);
+          mvMatrix = mat4.copy(some_settings.m);
+          do mat4.inverse(mvMatrix, mvMatrix);
+          (x, y) = rel_pos_in_box(this_viewbox, abs_full_pos);
+          vstart = vec4.from_public((x, y, 1.0, 1.0));
+          vtmp = vec4.from_public((9.9, 9.9, 9.9, 9.9));
+          do mat4.multiplyVec4(mvMatrix, vstart, vtmp);
+          vpreres = vec4.to_public(vtmp);
+          vres = (vpreres.f1 / vpreres.f4, vpreres.f2 / vpreres.f4, vpreres.f3 / vpreres.f4);
+          do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
+          (vres, some_settings.clear_near_far);
+      handler_mousedown(event) =
+        abs_full_pos=recompute_pos(event.mouse_position_on_page);
+        (gl_pos, clear_near_far) = compute_rel_quarter_pos(abs_full_pos);
+        mouse_listener({ mousedown; ~event; ~abs_full_pos; ~gl_pos })
+      do Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
+      handler_mouseup(event) =
+        abs_full_pos=recompute_pos(event.mouse_position_on_page);
+        (gl_pos, clear_near_far) = compute_rel_quarter_pos(abs_full_pos);
+        mouse_listener({ mouseup; ~event; ~gl_pos; switch=clear_near_far })
+      do Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;
     //Clear screen and make everything light gray // disabled to show png grid
     //do Webgl.clearColor(gl, 0.875, 0.875, 0.875, 1.0);

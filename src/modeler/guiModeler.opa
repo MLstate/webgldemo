@@ -141,12 +141,16 @@ type GuiModeler.t = {
         do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
         (channel, (-> get_state().modeler.scene), (->get_state().subjects), (->get_state().modeler.views)) ;
       support_gpu_picking = Mutable.make(Option.none);
-      mouse_listener(e) = match e with
-        | { mousedown; ~pos; ~possible_target; ~coord_fixer } ->
-          f(gpu_picker_regsiter) = (-> gpu_picker_regsiter(({ x_px=0; y_px=0}, (_ -> void)))); 
-          (Option.switch(f, (-> Session.send(channel, {click_on_scene; where=pos; ~possible_target; last_coord_fixer=coord_fixer})), support_gpu_picking.get()))()
-        | { mouseup; ~pos; ~switch } -> 
-          msg = {modeler_apply_possible_move; where=pos; ~switch };
+      lock_mouse_event = Mutable.make(false);
+      mouse_listener(msg) = 
+        match msg with
+        | { mousedown; event=_; ~abs_full_pos; ~gl_pos } ->
+          f(gpu_picker_regsiter) =
+            do lock_mouse_event.set(true);
+            gpu_picker_regsiter((abs_full_pos, (possible_target -> do Session.send(channel, {click_on_scene; where=gl_pos; ~possible_target; last_coord_fixer=Option.none}); lock_mouse_event.set(false)))) ; 
+          Option.switch(f, void, support_gpu_picking.get())
+        | { mouseup; event=_; ~gl_pos; ~switch } ->
+          msg = {modeler_apply_possible_move; where=gl_pos; ~switch };
           Session.send(channel, msg)
         end ;
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, get_camera_setting, mouse_listener, support_gpu_picking) ;
