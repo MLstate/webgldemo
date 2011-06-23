@@ -142,17 +142,22 @@ type GuiModeler.t = {
         (channel, (-> get_state().modeler.scene), (->get_state().subjects), (->get_state().modeler.views)) ;
       support_gpu_picking = Mutable.make(Option.none);
       lock_mouse_event = Mutable.make(false);
-      mouse_listener(msg) = 
+      on_message_mouse_listener(msg) =
         match msg with
         | { mousedown; event=_; ~abs_full_pos; ~gl_pos } ->
           f(gpu_picker_regsiter) =
             do lock_mouse_event.set(true);
             gpu_picker_regsiter((abs_full_pos, (possible_target -> do Session.send(channel, {click_on_scene; where=gl_pos; ~possible_target; last_coord_fixer=Option.none}); lock_mouse_event.set(false)))) ; 
-          Option.switch(f, void, support_gpu_picking.get())
+          do Option.switch(f, void, support_gpu_picking.get());
+          { continue }
         | { mouseup; event=_; ~gl_pos; ~switch } ->
           msg = {modeler_apply_possible_move; where=gl_pos; ~switch };
-          Session.send(channel, msg)
+          do Session.send(channel, msg);
+          { continue }
         end ;
+      mouse_listener =
+        channel_mouse_listener = Session.make_stateless(on_message_mouse_listener);
+        (msg -> Session.send(channel_mouse_listener, msg));
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, get_camera_setting, mouse_listener, support_gpu_picking) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
       else 
