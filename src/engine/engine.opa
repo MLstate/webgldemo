@@ -13,7 +13,7 @@
 @private type static_buffer = {
   positions: Webgl.WebGLBuffer;
   itemSize: int; numItems: int;
-  normals: Webgl.WebGLBuffer
+  normals: option(Webgl.WebGLBuffer)
 };
 
 @private type engine.scene = list(object);
@@ -82,22 +82,17 @@ initShaders(gl) =
 ;
 
 initLineXBuffers(gl, orient) =
-  (vertices, vertexNormals) = match orient with
-    | {x} -> ([ 0.0, 0.0, 0.0, 5.0, 0.0, 0.0 ], [ 2.5, 0.0, 0.0,        2.5, -1.0, 0.0 ])
-    | {y} -> ([ 0.0, 0.0, 0.0, 0.0, 5.0, 0.0 ], [ 0.0, 2.5, 0.0,        -1.0, 2.5, 0.0 ])
-    | {z} -> ([ 0.0, 0.0, 0.0, 0.0, 0.0, 5.0 ], [ 0.0, 0.0, 2.5,        0.0, -1.0, 2.5 ])
+  vertices = match orient with
+    | {x} -> [ 0.0, 0.0, 0.0, 5.0, 0.0, 0.0 ]
+    | {y} -> [ 0.0, 0.0, 0.0, 0.0, 5.0, 0.0 ]
+    | {z} -> [ 0.0, 0.0, 0.0, 0.0, 0.0, 5.0 ]
     end ;
   vertexPositionBuffer = Webgl.createBuffer(gl);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), vertexPositionBuffer);
   do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), 
     Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), 
     Webgl.STATIC_DRAW(gl));
-  vertexNormalBuffer = Webgl.createBuffer(gl);
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), vertexNormalBuffer);
-  do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), 
-    Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertexNormals)), 
-    Webgl.STATIC_DRAW(gl));
-  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=vertexNormalBuffer }
+  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=Option.none }
 ;
 
 setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
@@ -167,8 +162,6 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
     do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, r, g, b);
     do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), rep.positions);
     do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, rep.itemSize, Webgl.FLOAT(gl), false, 0, 0);
-    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), rep.normals);
-    do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, rep.itemSize, Webgl.FLOAT(gl), false, 0, 0);
     do Webgl.drawArrays(gl, Webgl.LINES(gl), 0, rep.numItems);
     void ;
 
