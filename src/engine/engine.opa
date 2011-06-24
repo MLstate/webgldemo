@@ -10,20 +10,13 @@
   useLightingUniform: Webgl.WebGLUniformLocation 
 };
 
-@private type static_buffer = {
-  positions: Webgl.WebGLBuffer;
-  itemSize: int; numItems: int;
-  normals: option(Webgl.WebGLBuffer);
-  beginMode: Webgl.GLenum
-};
-
 @private type engine.scene = list(object);
 
 @private type engine = {
   context: Webgl.Context.private;
   canvas: { selector:dom; width: int; height: int };
   shaderProgram: my_custom_shaderProgram
-  static_buffers: { repcoords: { x:static_buffer; y:static_buffer; z:static_buffer } };
+  static_buffers: { repcoords: { x: object.simple; y: object.simple; z: object.simple } };
   framePickBuffer: Webgl.WebGLFramebuffer;
   scene: engine.scene;
   selector: dom;

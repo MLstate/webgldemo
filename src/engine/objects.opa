@@ -17,11 +17,18 @@ type object.pickable = {
   numIndexs: int
 }
 
+@private type object.simple = {
+  positions: Webgl.WebGLBuffer;
+  itemSize: int; numItems: int;
+  normals: option(Webgl.WebGLBuffer);
+  beginMode: Webgl.GLenum
+};
+
 type object = object.pickable;
 
 
 
-display_pickable(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
+display_pickable(eng, pMatrix, mvMatrix, object : object.pickable, overide_color_for_picking) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
   color = 
     if overide_color_for_picking then object.picking_color 
