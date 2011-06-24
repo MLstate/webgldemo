@@ -200,10 +200,10 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
 @private drawScene_and_register(org_eng, viewbox, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views), get_mode, get_pending_mouseup_and_clean) =
   last_viewbox = Mutable.make(Option.none);
   to_be_pick = Mutable.make(List.empty);
-  rec aux(eng:engine) =
+  rec aux(eng:engine) = (
     gl = eng.context;
-    (eng, scene) = 
-      f(is_selected, p) = 
+    (eng, scene) =
+      f(is_selected, p) =
         match List.find((z_in_mem -> z_in_mem.id == p.id), eng.scene) with
         | { some=in_mem } -> { in_mem with position=p.cube; ~is_selected; color=p.color }
         | { none } -> Cube.create(gl, p, is_selected)
@@ -215,74 +215,46 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
         List.append(selection_scene, others_scene);
       ({ eng with ~scene }, scene);
     views = get_camera_setting();
-    eng = 
-      match get_mode() with
-      | {pick=pos; ~cont} -> (
-        match which_box(viewbox, pos) with
-        | {out} -> eng
-        | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
-          //do Log.debug("Picking", "in box: '{who}' \t {viewbox}");
-          this_viewbox = fetch_box(viewbox, who);
-          some_settings = fetch_box(views, who);
-          mvMatrix = mat4.copy(some_settings.m) ;
-          _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, (0.0, 1.0, 0.0), scene, {pick});
-          do mat4.inverse(mvMatrix, mvMatrix);
-          g(pos : Dom.dimensions) : vec3 =
-            x = (float_of_int(pos.x_px - this_viewbox.x) / float_of_int(this_viewbox.w)) * 2.0 - 1.0;
-            y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
-            vstart = vec4.from_public((x, y, 1.0, 1.0));
-            vtmp = vec4.from_public((9.9, 9.9, 9.9, 9.9));
-            do mat4.multiplyVec4(mvMatrix, vstart, vtmp);
-            vpreres = vec4.to_public(vtmp);
-            vres = (vpreres.f1 / vpreres.f4, vpreres.f2 / vpreres.f4, vpreres.f3 / vpreres.f4);
-            do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
-            vres;
-          pos_result = g(pos);
-          possible_target =
-            pickedColor = 
-              data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
-              do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
-              match Webgl.Uint8Array.to_int_list(data) with
-              | [r, g, b, _] -> (r, g, b)
-              | _ -> error("Picking failure")
-              end ;
-            do Log.debug("Picking", "Color is: { pickedColor }");
-            f = 
-              (r, g, b) = pickedColor;
-              (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
-            Option.map((u -> u.id), List.find(f, eng.scene));
-          do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
-          _ = cont({ mousedown; pos=vec3.apply(pos_result, some_settings.clear_near_far, (_-> 0.0)); ~possible_target; coord_fixer=Option.some(g) });
-          do last_viewbox.set(Option.some((this_viewbox, some_settings.clear_near_far, who)));
-          { eng with last_coord_fixer=Option.some(g) }
-        end)
-      | {normal} ->
-        do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-        _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, (0.0, 1.0, 0.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, (0.0, 0.0, 1.0), scene, {normal});
-        _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, (0.0, 1.0, 0.0), scene, {normal});
-        eng
-      end ;
-    do 
-      todo : list = get_pending_mouseup_and_clean();
-      f((bad_pos, cont)) : void = 
-        g(last_coord_fixer) =
-          with_v((this_viewbox, this_clear_near_far, this_who)) =
-            match this_who with
-            | {out} | {_3D} -> void
-            | _ -> 
-              if this_viewbox.inbox(bad_pos) then
-                cont(vec3.apply(last_coord_fixer(bad_pos), this_clear_near_far, (_-> 0.0)), this_clear_near_far)
-              else
-                Log.warning("Incorrect mouseup", "at bad_pos={bad_pos}")
-            end;
-          Option.iter(with_v, last_viewbox.get());
-        Option.iter(g, eng.last_coord_fixer);
-      List.iter(f, todo);
+
+    tmp_f(pos) = (
+      match which_box(viewbox, pos) with
+      | {out} -> Option.none
+      | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
+        this_viewbox = fetch_box(viewbox, who);
+        some_settings = fetch_box(views, who);
+        mvMatrix = mat4.copy(some_settings.m) ;
+        _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, (0.0, 1.0, 0.0), scene, {pick});
+        possible_target =
+          pickedColor =
+            data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
+            do Webgl.readPixels(gl, pos.x_px, pos.y_px, 1, 1, Webgl.RGBA(gl), Webgl.UNSIGNED_BYTE(gl), Webgl.Uint8Array.to_ArrayBuffer(data));
+            match Webgl.Uint8Array.to_int_list(data) with
+            | [r, g, b, _] -> (r, g, b)
+            | _ -> error("Picking failure")
+            end ;
+          do Log.debug("Picking", "Color is: { pickedColor }");
+          f =
+            (r, g, b) = pickedColor;
+            (z -> (z.picking_color == (float_of_int(r) / 255., float_of_int(g) / 255., float_of_int(b) / 255.))) ;
+          Option.map((u -> u.id), List.find(f, eng.scene));
+        possible_target
+      end);
+    tmp = to_be_pick.get();
+    do to_be_pick.set(List.empty);
+    do List.iter(((pos, f) -> f(tmp_f(pos))), tmp);
+    do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
+
+    eng =
+      do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
+      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, (0.0, 0.0, 1.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, (0.0, 1.0, 0.0), scene, {normal});
+      eng;
+
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
-    void
-    ;
+    void );
+
   do aux(org_eng);
   (a -> to_be_pick.set(List.cons(a, to_be_pick.get())))
 ;
@@ -314,7 +286,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         gl_pos;
       compute_rel_quarter_pos(abs_full_pos) =
         match which_box(viewbox, abs_full_pos) with
-        | {out} -> ((0., 0., 0.), {f1})
+        | {out} -> ((0., 0., 0.), {f1}, {out})
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
           this_viewbox = fetch_box(viewbox, who);
           some_settings = fetch_box(get_camera_setting(), who);
@@ -327,16 +299,18 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
           vpreres = vec4.to_public(vtmp);
           vres = (vpreres.f1 / vpreres.f4, vpreres.f2 / vpreres.f4, vpreres.f3 / vpreres.f4);
           do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
-          (vres, some_settings.clear_near_far);
+          (vres, some_settings.clear_near_far, who);
       handler_mousedown(event) =
         abs_full_pos=recompute_pos(event.mouse_position_on_page);
-        (gl_pos, clear_near_far) = compute_rel_quarter_pos(abs_full_pos);
-        mouse_listener({ mousedown; ~event; ~abs_full_pos; ~gl_pos })
+        (gl_pos, clear_near_far, _) = compute_rel_quarter_pos(abs_full_pos);
+        mouse_listener({ mousedown; ~event; ~abs_full_pos; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)) })
       do Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
       handler_mouseup(event) =
         abs_full_pos=recompute_pos(event.mouse_position_on_page);
-        (gl_pos, clear_near_far) = compute_rel_quarter_pos(abs_full_pos);
-        mouse_listener({ mouseup; ~event; ~gl_pos; switch=clear_near_far })
+        (gl_pos, clear_near_far, who) = compute_rel_quarter_pos(abs_full_pos);
+        match who with
+        | {_3D} -> void
+        | _ -> mouse_listener({ mouseup; ~event; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)); switch=clear_near_far })
       do Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
       void;
     //Clear screen and make everything light gray // disabled to show png grid
