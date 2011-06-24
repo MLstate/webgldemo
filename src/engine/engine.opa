@@ -13,7 +13,8 @@
 @private type static_buffer = {
   positions: Webgl.WebGLBuffer;
   itemSize: int; numItems: int;
-  normals: option(Webgl.WebGLBuffer)
+  normals: option(Webgl.WebGLBuffer);
+  beginMode: Webgl.GLenum
 };
 
 @private type engine.scene = list(object);
@@ -92,7 +93,7 @@ initLineXBuffers(gl, orient) =
   do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), 
     Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), 
     Webgl.STATIC_DRAW(gl));
-  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=Option.none }
+  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=Option.none; beginMode=Webgl.LINES(gl) }
 ;
 
 setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =

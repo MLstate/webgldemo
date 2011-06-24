@@ -12,7 +12,8 @@ type object = {
   id: hidden_id;
   color: engine.color;
   position: engine.position;
-  is_selected: bool
+  is_selected: bool;
+  beginMode: Webgl.GLenum
 }
 
 
@@ -31,7 +32,7 @@ display(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
 
   mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(object.position), n))) ;
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
-  do Webgl.drawElements(gl, Webgl.TRIANGLES(gl), 36, Webgl.UNSIGNED_SHORT(gl), 0);
+  do Webgl.drawElements(gl, object.beginMode, 36, Webgl.UNSIGNED_SHORT(gl), 0);
   void
 ;
 
@@ -135,7 +136,7 @@ Cube = {{
     do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), cubeVertexIndexBuffer);
     do Webgl.bufferData(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), Webgl.Uint16Array.to_ArrayBuffer(Webgl.Uint16Array.from_int_list(cubeVertexIndices)), Webgl.STATIC_DRAW(gl));
     { vertexPositions=cubeVertexPositionBuffer; itemSize=3; numItems=24; vertexNormals=cubeVertexNormalBuffer; vertexIndexs=cubeVertexIndexBuffer; picking_color=ColorFloat.random(); id=m_object.id; color=m_object.color
-    ; ~is_selected; position=m_object.cube } : object
+    ; ~is_selected; position=m_object.cube; beginMode=Webgl.TRIANGLES(gl) } : object
   ;
 
 
