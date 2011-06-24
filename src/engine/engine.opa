@@ -163,9 +163,10 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
     match mode with
     | {normal} ->
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
-      do draw_rep(1.0, 0.0, 0.0, repcoords.x);
-      do draw_rep(0.0, 1.0, 0.0, repcoords.y);
-      do draw_rep(0.0, 0.0, 1.0, repcoords.z);
+      //do draw_rep(1.0, 0.0, 0.0, repcoords.x);
+      do display_simple(eng, repcoords.x);
+      do display_simple(eng, repcoords.y);
+      do display_simple(eng, repcoords.z);
       do match who with 
         | {_3D} -> 
           do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true

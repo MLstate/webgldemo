@@ -17,7 +17,7 @@ type object.pickable = {
   numIndexs: int
 }
 
-@private type object.simple = {
+type object.simple = {
   positions: Webgl.WebGLBuffer;
   itemSize: int; numItems: int;
   normals: option(Webgl.WebGLBuffer);
@@ -27,7 +27,13 @@ type object.pickable = {
 
 type object = object.pickable;
 
-
+display_simple(eng, object : object.simple) =
+  rec gl = eng.context and color = object.color and shaderProgram = eng.shaderProgram;
+  do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, color.f1, color.f2, color.f3);
+  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
+  do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
+  do Webgl.drawArrays(gl, Webgl.LINES(gl), 0, object.numItems);
+  void ;
 
 display_pickable(eng, pMatrix, mvMatrix, object : object.pickable, overide_color_for_picking) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
