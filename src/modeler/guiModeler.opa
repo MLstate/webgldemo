@@ -142,14 +142,14 @@ type GuiModeler.t = {
       support_gpu_picking = Mutable.make(Option.none);
       lock_mouse_event = Mutable.make(false);
       mouse_listener =
-        on_message_mouse_listener(state_mouse, msg, my_channel) =
+        rec on_message_mouse_listener(state_mouse, msg) =
           match msg with
           | { mousedown; event=_; ~abs_full_pos; ~gl_pos } ->
             f(gpu_picker_regsiter) =
               do lock_mouse_event.set(true);
               sub(possible_target) =
                 do Session.send(channel, {click_on_scene; where=gl_pos; ~possible_target});
-                Session.send(my_channel, { _internal; done_down });
+                Session.send(channel_mouse_listener, { _internal; done_down });
               gpu_picker_regsiter((abs_full_pos, sub)) ;
             do Option.iter(f, support_gpu_picking.get());
             { set={ running_down=List.empty } }
@@ -166,8 +166,8 @@ type GuiModeler.t = {
             | { nothing } -> do Log.debug("", ""); { unchanged }
             | { running_down=l } -> do List.iter((f -> f()), l); { set={ nothing } }
             end
-          end;
-        channel_mouse_listener = Session.make_own({nothing}, on_message_mouse_listener);
+          end
+        and val channel_mouse_listener = Session.make({nothing}, on_message_mouse_listener);
         (msg -> Session.send(channel_mouse_listener, msg));
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, get_camera_setting, mouse_listener, support_gpu_picking) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 
