@@ -26,7 +26,6 @@
   framePickBuffer: Webgl.WebGLFramebuffer;
   scene: engine.scene;
   selector: dom;
-  last_coord_fixer: option(Dom.dimensions -> vec3);
 } ;
 
 @client initPickBuffer(eng) = 
@@ -263,8 +262,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
   | { ok=context } ->
     gl = context;
     eng : engine =
-      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel;
-        last_coord_fixer=Option.none });
+      start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel });
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
