@@ -269,15 +269,15 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
     viewbox = setup_boxes(eng) ;
     {} =
-      recompute_pos(rel_mouse_position_on_page) =
+      compute_abs_full_pos(rel_mouse_position_on_page) =
         m_pos = // we transform the pos to be relative to the upper leftcorner of the canvas
           c_pos = Dom.get_offset(canvas_sel);
           rel = rel_mouse_position_on_page;
           { x_px=max(rel.x_px - c_pos.x_px, 0); y_px=max(rel.y_px - c_pos.y_px, 0) };
         // now with gl the origin will be at the lower left corner
-        gl_pos = { x_px=min(max(m_pos.x_px,0), width-1); y_px=min(max(height - 1 - m_pos.y_px, 0), height-1) };
-        do Log.debug("P", "[({m_pos.x_px},{m_pos.y_px})] {gl_pos.x_px}, {gl_pos.y_px}");
-        gl_pos;
+        abs_full_pos = { x_px=min(max(m_pos.x_px,0), width-1); y_px=min(max(height - 1 - m_pos.y_px, 0), height-1) };
+        do Log.debug("P", "[rel_mouse_position_on_page=({m_pos})] abs_full_pos=({abs_full_pos})");
+        abs_full_pos;
       compute_rel_quarter_pos(abs_full_pos) =
         match which_box(viewbox, abs_full_pos) with
         | {out} -> ((0., 0., 0.), {f1}, {out})
@@ -295,12 +295,12 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
           do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
           (vres, some_settings.clear_near_far, who);
       handler_mousedown(event) =
-        abs_full_pos=recompute_pos(event.mouse_position_on_page);
+        abs_full_pos=compute_abs_full_pos(event.mouse_position_on_page);
         (gl_pos, clear_near_far, _) = compute_rel_quarter_pos(abs_full_pos);
         mouse_listener({ mousedown; ~event; ~abs_full_pos; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)) })
       do ignore(Dom.bind(canvas_sel, { mousedown }, handler_mousedown));
       handler_mouseup(event) =
-        abs_full_pos=recompute_pos(event.mouse_position_on_page);
+        abs_full_pos=compute_abs_full_pos(event.mouse_position_on_page);
         (gl_pos, clear_near_far, who) = compute_rel_quarter_pos(abs_full_pos);
         match who with
         | {_3D} -> void
