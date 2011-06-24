@@ -178,12 +178,12 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
           do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 1); // 1 = true
           Webgl.uniform3f(gl, shaderProgram.lightingDirectionUniform, 0.85, 0.8, 0.75)
         | _ -> void end;
-      List.iter((object -> display(eng, pMatrix, mvMatrix, object, false)), scene)
+      List.iter((object -> display_pickable(eng, pMatrix, mvMatrix, object, false)), scene)
     | {pick} ->
       do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.some(eng.framePickBuffer));
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false;
-      do List.iter((object -> display(eng, pMatrix, mvMatrix, object, true)), scene);
+      do List.iter((object -> display_pickable(eng, pMatrix, mvMatrix, object, true)), scene);
       void
     end ;
 

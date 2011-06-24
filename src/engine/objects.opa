@@ -2,7 +2,7 @@
 type engine.color = ColorFloat.color;
 type engine.position = vec3;
 
-type object = { 
+type object.pickable = { 
   vertexPositions: Webgl.WebGLBuffer;
   itemSize: int;
   numItems: int;
@@ -17,9 +17,11 @@ type object = {
   numIndexs: int
 }
 
+type object = object.pickable;
 
 
-display(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
+
+display_pickable(eng, pMatrix, mvMatrix, object, overide_color_for_picking) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
   color = 
     if overide_color_for_picking then object.picking_color 
