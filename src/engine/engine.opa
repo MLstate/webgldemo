@@ -75,7 +75,7 @@ initShaders(gl) =
   shaderProgram
 ;
 
-initLineXBuffers(gl, orient) =
+initLineXBuffers(gl, orient, color) =
   vertices = match orient with
     | {x} -> [ 0.0, 0.0, 0.0, 5.0, 0.0, 0.0 ]
     | {y} -> [ 0.0, 0.0, 0.0, 0.0, 5.0, 0.0 ]
@@ -86,7 +86,7 @@ initLineXBuffers(gl, orient) =
   do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), 
     Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), 
     Webgl.STATIC_DRAW(gl));
-  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=Option.none; beginMode=Webgl.LINES(gl) }
+  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=Option.none; beginMode=Webgl.LINES(gl); ~color }
 ;
 
 setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
@@ -253,7 +253,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
-        { x=initLineXBuffers(gl, {x}); y=initLineXBuffers(gl, {y}); z=initLineXBuffers(gl, {z}) } };
+        { x=initLineXBuffers(gl, {x}, (1.0, 0.0, 0.0)); y=initLineXBuffers(gl, {y}, (0.0, 1.0, 0.0)); z=initLineXBuffers(gl, {z}, (0.0, 0.0, 1.0)) } };
     viewbox = setup_boxes(eng) ;
     {} =
       compute_abs_full_pos(rel_mouse_position_on_page) =

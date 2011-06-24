@@ -21,7 +21,8 @@ type object.pickable = {
   positions: Webgl.WebGLBuffer;
   itemSize: int; numItems: int;
   normals: option(Webgl.WebGLBuffer);
-  beginMode: Webgl.GLenum
+  beginMode: Webgl.GLenum;
+  color: engine.color;
 };
 
 type object = object.pickable;
