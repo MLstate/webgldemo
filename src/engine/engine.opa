@@ -300,14 +300,14 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         abs_full_pos=recompute_pos(event.mouse_position_on_page);
         (gl_pos, clear_near_far, _) = compute_rel_quarter_pos(abs_full_pos);
         mouse_listener({ mousedown; ~event; ~abs_full_pos; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)) })
-      do Dom.bind(canvas_sel, { mousedown }, handler_mousedown);
+      do ignore(Dom.bind(canvas_sel, { mousedown }, handler_mousedown));
       handler_mouseup(event) =
         abs_full_pos=recompute_pos(event.mouse_position_on_page);
         (gl_pos, clear_near_far, who) = compute_rel_quarter_pos(abs_full_pos);
         match who with
         | {_3D} -> void
         | _ -> mouse_listener({ mouseup; ~event; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)); switch=clear_near_far })
-      do Dom.bind(canvas_sel, { mouseup }, handler_mouseup);
+      do ignore(Dom.bind(canvas_sel, { mouseup }, handler_mouseup));
       void;
     //Clear screen and make everything light gray // disabled to show png grid
     //do Webgl.clearColor(gl, 0.875, 0.875, 0.875, 1.0);
@@ -318,7 +318,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
     do
       gpu_picker_register = drawScene_and_register(eng, viewbox, get_scene, get_camera_setting);
-      do support_gpu_picking.set(Option.some(gpu_picker_register));
+      do ignore(support_gpu_picking.set(Option.some(gpu_picker_register)));
       void
     { success }
   | { ~ko } -> { failure=ko }
