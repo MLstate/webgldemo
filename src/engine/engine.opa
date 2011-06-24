@@ -155,7 +155,7 @@ rel_pos_in_box(this_viewbox, pos) =
   y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
   (x, y);
 
-drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, mode) =
+drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = camera_setting;
@@ -197,8 +197,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
   (pMatrix, mvMatrix)
 ;
 
-@private drawScene_and_register(org_eng, viewbox, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views), get_mode, get_pending_mouseup_and_clean) =
-  last_viewbox = Mutable.make(Option.none);
+@private drawScene_and_register(org_eng, viewbox, get_scene : (->Scene.Client.scene), get_camera_setting : (->Modeler.views)) =
   to_be_pick = Mutable.make(List.empty);
   rec aux(eng:engine) = (
     gl = eng.context;
@@ -223,7 +222,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
         this_viewbox = fetch_box(viewbox, who);
         some_settings = fetch_box(views, who);
         mvMatrix = mat4.copy(some_settings.m) ;
-        _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, (0.0, 1.0, 0.0), scene, {pick});
+        _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, scene, {pick});
         possible_target =
           pickedColor =
             data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
@@ -246,10 +245,10 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
 
     eng =
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, (0.0, 1.0, 0.0), scene, {normal});
-      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, (0.0, 1.0, 0.0), scene, {normal});
-      _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, (0.0, 0.0, 1.0), scene, {normal});
-      _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, (0.0, 1.0, 0.0), scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, scene, {normal});
       eng;
 
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
@@ -262,9 +261,6 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, up, scene, m
 initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener, support_gpu_picking) : outcome =
   match WebGLUtils.setupWebGL_with_custom_failure(Dom.of_selection(canvas_sel)) with
   | { ok=context } ->
-    mode = Mutable.make({normal});
-    pending_mouseup = Mutable.make(List.empty);
-    is_picking(m) = match m with | { pick=_; cont=_ } -> true | _ -> false end;
     gl = context;
     eng : engine =
       start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel;
@@ -320,12 +316,8 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
     do Webgl.clearDepth(gl, 1.0);
     do Webgl.enable(gl, Webgl.DEPTH_TEST(gl));
     do Webgl.depthFunc(gl, Webgl.LEQUAL(gl));
-    do 
-      get_pending_mouseup_and_clean() = 
-        tmp = List.rev(pending_mouseup.get());
-        do pending_mouseup.set(List.empty);
-        tmp;
-      gpu_picker_register = drawScene_and_register(eng, viewbox, get_scene, get_camera_setting, mode.get, get_pending_mouseup_and_clean);
+    do
+      gpu_picker_register = drawScene_and_register(eng, viewbox, get_scene, get_camera_setting);
       do support_gpu_picking.set(Option.some(gpu_picker_register));
       void
     { success }

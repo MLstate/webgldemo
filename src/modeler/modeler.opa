@@ -88,7 +88,7 @@ Scene = {{
       Option.map(f, scene.selection)
     | { possible_move; ~where; ~switch } ->
       f(sel) = 
-        where = vec3.apply(where, switch, (u -> vec3.get(sel.cube, switch)));
+        where = vec3.apply(where, switch, (_ -> vec3.get(sel.cube, switch)));
         { pid=scene.others.CPF(); command={ move_object; ~where; id=sel.id } };
       Option.map(f, scene.selection)
     | { selection_change; ... } -> Option.none
