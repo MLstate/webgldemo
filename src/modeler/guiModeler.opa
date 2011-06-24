@@ -7,7 +7,6 @@ type GuiModeler.t = {
     tool: subject(Modeler.tool);
     selection: { this: subject(option(Scene.objects)); color: subject(ColorFloat.color) }
     };
-  last_coord_fixer: option(Dom.dimensions -> vec3)
   width: int; height: int
 } ;
 
@@ -36,13 +35,13 @@ type GuiModeler.t = {
   empty(scene_url, client_id, width, height) : GuiModeler.t = 
     modeler = Modeler.empty(scene_url, client_id, float_of_int(height) / float_of_int(width));
     subjects = { tool=Observable.make(modeler.tool); selection={ this=Observable.make(modeler.scene.selection); color=Observable.make( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) ) } };
-    { ~modeler; ~subjects; last_coord_fixer=Option.none; ~width; ~height };
+    { ~modeler; ~subjects; ~width; ~height };
 
   @private on_message(state : GuiModeler.t, message) = 
     _set_modeler(modeler) = { set={ state with ~modeler } } ;
     _set_subjects(subjects) = { set={ state with ~subjects } } ;
     set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
-    _set_with_last(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler; last_coord_fixer=new_state.last_coord_fixer } };
+    _set_with_last(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
     send_opatch(opatch) =
       m(patch) = { apply_patch; ~patch; address=state.modeler.address }; 
       Option.iter((p -> Session.send(central_modelers, m(p))), opatch);
@@ -51,13 +50,13 @@ type GuiModeler.t = {
                                                    color=Observable.change_state( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) , state.subjects.selection.color) } };
       { state with ~subjects; ~modeler };
     match message with
-    | {click_on_scene; ~where; ~possible_target; ~last_coord_fixer} -> 
+    | {click_on_scene; ~where; ~possible_target} ->
       (modeler, opatch) = Modeler.tool_use(state.modeler, where, possible_target);
       do send_opatch(opatch);
       if Observable.get_state(state.subjects.selection.this) == modeler.scene.selection then
-        { set={ state with ~modeler; ~last_coord_fixer } }
+        { set={ state with ~modeler } }
       else
-        state = { reset_subjects(modeler) with ~last_coord_fixer };
+        state = reset_subjects(modeler);
         set(state)
     | {modeler_change_tool=new_tool} ->
       modeler = Modeler.tool_change(state.modeler, new_tool);
@@ -149,7 +148,7 @@ type GuiModeler.t = {
             f(gpu_picker_regsiter) =
               do lock_mouse_event.set(true);
               sub(possible_target) =
-                do Session.send(channel, {click_on_scene; where=gl_pos; ~possible_target; last_coord_fixer=Option.none});
+                do Session.send(channel, {click_on_scene; where=gl_pos; ~possible_target});
                 Session.send(my_channel, { _internal; done_down });
               gpu_picker_regsiter((abs_full_pos, sub)) ;
             do Option.iter(f, support_gpu_picking.get());
