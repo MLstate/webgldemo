@@ -7,8 +7,7 @@ In a standard 4-views interface, you can add and move cubes.
 You can share your work in real time with other users.
 
 REQUIREMENTS
-* You need Opa !
-See http://opalang.org (currently on invitations, will be open soon)
+* You need Opa ! (See http://opalang.org or https://github.com/MLstate/opalang)
 * You need a recent browser with WebGl capabilities.
 
 BUILDING
