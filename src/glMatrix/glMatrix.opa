@@ -63,6 +63,8 @@ mat4 = {{
      scale : mat4, vec3.private, mat4 -> mat4 = %% glMatrixPlugin.mat4_scale %% ;
   }}
 
+  to_list = Low.to_list;
+  str = Low.str
   create : -> mat4 = Low.create;
   identity() : mat4 = Low.identity(create());
   copy = Low.copy;

@@ -74,7 +74,7 @@ display_pickable(eng, pMatrix, mvMatrix, object : object.pickable, overide_color
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
   do Webgl.bindBuffer(gl, Webgl.ELEMENT_ARRAY_BUFFER(gl), object.vertexIndexs);
 
-  mvMatrix = Stack.update_and_push(mvMatrix, (o, n -> mat4.translate(o, vec3.from_public(object.position), n))) ;
+  mvMatrix = Stack.update_and_push(mvMatrix, (o -> mat4.translate(o, vec3.from_public(object.position)))) ;
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
   do Webgl.drawElements(gl, object.beginMode, object.numIndexs, Webgl.UNSIGNED_SHORT(gl), 0);
   void

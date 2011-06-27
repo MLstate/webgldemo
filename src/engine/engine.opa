@@ -87,8 +87,7 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
     g;
   do Webgl.uniformMatrix4fv(gl, shaderProgram.pMatrixUniform, false, a);
   do Webgl.uniformMatrix4fv(gl, shaderProgram.mvMatrixUniform, false, e);
-  normalMatrix = mat3.create();
-  do mat4.toInverseMat3(mvMatrix, normalMatrix);
+  normalMatrix = mat4.toInverseMat3(mvMatrix);
   do mat3.transpose(normalMatrix, normalMatrix);
   do Webgl.uniformMatrix3fv(gl, shaderProgram.nMatrixUniform, false, Webgl.Float32Array.from_float_list(mat3.to_list(normalMatrix)));
   void
@@ -135,10 +134,8 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode,
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = camera_setting;
-  mvMatrix = 
-    tmp_mvMatrix = mat4.create();
-    do mat4.identity(tmp_mvMatrix);
-    Stack.push(Stack.create(), tmp_mvMatrix);
+  mvMatrix =
+    Stack.push(Stack.create(), mat4.identity());
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
 
   _ = 
@@ -221,14 +218,11 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode,
       _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, scene, {normal}, Option.some(gr._ZX));
       _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, scene, {normal}, Option.some(gr._ZX));
       do
-        m = mat4.create();
         do Webgl.viewport(gl, 0, 0, eng.canvas.width, eng.canvas.height);
-        do mat4.ortho(0., float_of_int(eng.canvas.width-1), 0., float_of_int(eng.canvas.height), -10., 10., m);
+        m = mat4.ortho(0., float_of_int(eng.canvas.width-1), 0., float_of_int(eng.canvas.height), -10., 10.);
         g = float_of_int;
         tmp = Lines.create(eng.context, [g(viewbox._YZ.x),0., 0., g(viewbox._YZ.x), g(eng.canvas.height),0., 0.,g(viewbox._YZ.h),0., g(eng.canvas.width),g(viewbox._YZ.h),0. ], (0., 0., 0.));
-        mvMatrix = mat4.create();
-        do mat4.identity(mvMatrix);
-        do setMatrixUniforms(eng.context, eng.shaderProgram, m, mvMatrix);
+        do setMatrixUniforms(eng.context, eng.shaderProgram, m, mat4.identity());
         display_simple(eng, tmp);
       eng;
 
@@ -271,12 +265,10 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
         | {_YX} as who | {_YZ} as who | {_ZX} as who | {_3D} as who ->
           this_viewbox = fetch_box(viewbox, who);
           some_settings = fetch_box(get_camera_setting(), who);
-          mvMatrix = mat4.copy(some_settings.m);
-          do mat4.inverse(mvMatrix, mvMatrix);
+          mvMatrix = mat4.inverse( mat4.copy(some_settings.m) ); // TODO remove copy
           (x, y) = rel_pos_in_box(this_viewbox, abs_full_pos);
           vstart = vec4.from_public((x, y, 1.0, 1.0));
-          vtmp = vec4.from_public((9.9, 9.9, 9.9, 9.9));
-          do mat4.multiplyVec4(mvMatrix, vstart, vtmp);
+          vtmp = mat4.multiplyVec4(mvMatrix, vstart);
           vpreres = vec4.to_public(vtmp);
           vres = (vpreres.f1 / vpreres.f4, vpreres.f2 / vpreres.f4, vpreres.f3 / vpreres.f4);
           do Log.debug("Converting coord", "vstart={ vec4.str(vstart) }, \t vres={ vres }");
