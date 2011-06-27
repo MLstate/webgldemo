@@ -16,7 +16,7 @@
   context: Webgl.Context.private;
   canvas: { selector:dom; width: int; height: int };
   shaderProgram: my_custom_shaderProgram
-  static_buffers: { repcoords: { x: object.simple; y: object.simple; z: object.simple } };
+  static_buffers: { repcoords: { x: object.simple; y: object.simple; z: object.simple }; grids: { _YX: object.simple; _YZ: object.simple;  _ZX: object.simple } };
   framePickBuffer: Webgl.WebGLFramebuffer;
   scene: engine.scene;
   selector: dom;
@@ -130,7 +130,8 @@ rel_pos_in_box(this_viewbox, pos) =
   y = (float_of_int(pos.y_px - this_viewbox.y) / float_of_int(this_viewbox.h)) * 2.0 - 1.0;
   (x, y);
 
-drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode) =
+
+drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode, ogrid) =
   gl = eng.context; shaderProgram = eng.shaderProgram; repcoords = eng.static_buffers.repcoords;
   do Webgl.viewport(gl, viewport.x, viewport.y, viewport.w, viewport.h);
   pMatrix = camera_setting;
@@ -144,6 +145,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
     match mode with
     | {normal} ->
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
+      do Option.iter((z -> display_simple(eng, z)), ogrid);
       do display_simple(eng, repcoords.x);
       do display_simple(eng, repcoords.y);
       do display_simple(eng, repcoords.z);
@@ -189,7 +191,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
         this_viewbox = fetch_box(viewbox, who);
         some_settings = fetch_box(views, who);
         mvMatrix = mat4.copy(some_settings.m) ;
-        _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, scene, {pick});
+        _ = drawScene_for_a_viewport(eng, who, this_viewbox, mvMatrix, scene, {pick}, Option.none);
         possible_target =
           pickedColor =
             data = Webgl.Uint8Array.from_int_list(List.init((_->123), 4));
@@ -211,11 +213,12 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
     do Webgl.bindFramebuffer(gl, Webgl.FRAMEBUFFER(gl), Option.none);
 
     eng =
+      gr = eng.static_buffers.grids;
       do Webgl.clear(gl, Webgl.GLbitfield_OR(Webgl.COLOR_BUFFER_BIT(gl), Webgl.DEPTH_BUFFER_BIT(gl)));
-      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, scene, {normal});
-      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, scene, {normal});
-      _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, scene, {normal});
-      _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, scene, {normal});
+      _ = drawScene_for_a_viewport(eng, {_YX}, viewbox._YX, views._YX.m, scene, {normal}, Option.some(gr._YX));
+      _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, scene, {normal}, Option.some(gr._YZ));
+      _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, scene, {normal}, Option.some(gr._ZX));
+      _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, scene, {normal}, Option.some(gr._ZX));
       eng;
 
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
@@ -233,7 +236,11 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
       start = @openrecord({ context=gl; canvas={ selector=canvas_sel; ~width; ~height }; scene=List.empty; selector=canvas_sel });
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
-      { start with static_buffers.repcoords=
+      grids =
+        f(g) = Lines.grid(gl, -10, 10, 1, 10.0, g, (0.8, 0.8, 0.8));
+        { _YX=f((a,b -> [a,b,0.0])); _YZ=f((a,b -> [0.0,a,b])); _ZX=f((a,b -> [a,0.0,b])) };
+      { start with static_buffers.grids=grids;
+        static_buffers.repcoords=
         { x=Lines.create(gl, [0.0, 0.0, 0.0, 5.0, 0.0, 0.0], (1.0, 0.0, 0.0)); y=Lines.create(gl, [0.0, 0.0, 0.0, 0.0, 5.0, 0.0], (0.0, 1.0, 0.0));
           z=Lines.create(gl, [0.0, 0.0, 0.0, 0.0, 0.0, 5.0], (0.0, 0.0, 1.0)) } };
     viewbox = setup_boxes(eng) ;
