@@ -140,14 +140,12 @@ type GuiModeler.t = {
         do Session.send(central_modelers, {register; ~scene_url; ~sync_channel; ~client_id});
         (channel, (-> get_state().modeler.scene), (->get_state().subjects), (->get_state().modeler.views)) ;
       support_gpu_picking = Mutable.make(Option.none);
-      lock_mouse_event = Mutable.make(false);
       mouse_listener =
         epsilon_sensi = 200;
         rec on_message_mouse_listener(state_mouse, msg) =
           match msg with
           | { mousedown; event=_; ~abs_full_pos; ~gl_pos; ~now } ->
             f(gpu_picker_regsiter) =
-              do lock_mouse_event.set(true);
               sub(possible_target) =
                 do Session.send(channel, {click_on_scene; where=gl_pos; ~possible_target});
                 Session.send(channel_mouse_listener, { _internal; done_down });
