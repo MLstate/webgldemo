@@ -142,9 +142,10 @@ type GuiModeler.t = {
       support_gpu_picking = Mutable.make(Option.none);
       lock_mouse_event = Mutable.make(false);
       mouse_listener =
+        epsilon_sensi = 200;
         rec on_message_mouse_listener(state_mouse, msg) =
           match msg with
-          | { mousedown; event=_; ~abs_full_pos; ~gl_pos } ->
+          | { mousedown; event=_; ~abs_full_pos; ~gl_pos; ~now } ->
             f(gpu_picker_regsiter) =
               do lock_mouse_event.set(true);
               sub(possible_target) =
@@ -152,22 +153,27 @@ type GuiModeler.t = {
                 Session.send(channel_mouse_listener, { _internal; done_down });
               gpu_picker_regsiter((abs_full_pos, sub)) ;
             do Option.iter(f, support_gpu_picking.get());
-            { set={ running_down=List.empty } }
-          | { mouseup; event=_; ~gl_pos; ~switch } ->
+            { set={ running_down=List.empty; time_tag=now } }
+          | { mouseup; event=_; ~gl_pos; ~switch; now=when_up } ->
             f() =
               msg = {modeler_apply_possible_move; where=gl_pos; ~switch };
               Session.send(channel, msg);
             match state_mouse with
-            | { nothing } -> do f(); { unchanged }
-            | { running_down=l } ->
-              { set={ running_down=List.cons(f, l) } }
+            | { nothing; ~time_tag } ->
+              do if (when_up - time_tag) >= epsilon_sensi then f() else void;
+              { unchanged }
+            | { running_down=l; ~time_tag } ->
+              { set={ running_down=List.cons((when_up, f), l); ~time_tag } }
             end
           | { _internal; done_down } -> match state_mouse with
-            | { nothing } -> do Log.debug("", ""); { unchanged }
-            | { running_down=l } -> do List.iter((f -> f()), l); { set={ nothing } }
+            | { nothing; time_tag=_ } -> { unchanged }
+            | { running_down=l; ~time_tag } ->
+              g((when_up, f)) =
+                if (when_up - time_tag) >= epsilon_sensi then f() else void;
+              do List.iter(g, l); { set={ nothing; ~time_tag } }
             end
           end
-        and val channel_mouse_listener = Session.make({nothing}, on_message_mouse_listener);
+        and val channel_mouse_listener = Session.make({nothing; time_tag=0}, on_message_mouse_listener);
         (msg -> Session.send(channel_mouse_listener, msg));
       res = initGL(#{id_canvas_canvas}, width, height, get_scene, get_camera_setting, mouse_listener, support_gpu_picking) ;
       if Outcome.is_failure(res) then ignore(Dom.put_replace(parent_sel, Dom.of_xhtml(fail_msg))) 

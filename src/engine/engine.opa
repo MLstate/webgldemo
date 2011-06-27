@@ -284,14 +284,14 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
       handler_mousedown(event) =
         abs_full_pos=compute_abs_full_pos(event.mouse_position_on_page);
         (gl_pos, clear_near_far, _) = compute_rel_quarter_pos(abs_full_pos);
-        mouse_listener({ mousedown; ~event; ~abs_full_pos; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)) })
+        mouse_listener({ mousedown; ~event; ~abs_full_pos; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)); now=Date.in_milliseconds(Date.now()) })
       do ignore(Dom.bind(canvas_sel, { mousedown }, handler_mousedown));
       handler_mouseup(event) =
         abs_full_pos=compute_abs_full_pos(event.mouse_position_on_page);
         (gl_pos, clear_near_far, who) = compute_rel_quarter_pos(abs_full_pos);
         match who with
         | {_3D} -> void
-        | _ -> mouse_listener({ mouseup; ~event; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)); switch=clear_near_far })
+        | _ -> mouse_listener({ mouseup; ~event; gl_pos=vec3.apply(gl_pos, clear_near_far, (_-> 0.0)); switch=clear_near_far; now=Date.in_milliseconds(Date.now()) })
       do ignore(Dom.bind(canvas_sel, { mouseup }, handler_mouseup));
       void;
     //Clear screen and make everything light gray // disabled to show png grid
