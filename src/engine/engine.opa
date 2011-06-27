@@ -87,8 +87,7 @@ setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
     g;
   do Webgl.uniformMatrix4fv(gl, shaderProgram.pMatrixUniform, false, a);
   do Webgl.uniformMatrix4fv(gl, shaderProgram.mvMatrixUniform, false, e);
-  normalMatrix = mat4.toInverseMat3(mvMatrix);
-  do mat3.transpose(normalMatrix, normalMatrix);
+  normalMatrix = mat3.transpose( mat4.toInverseMat3(mvMatrix) );
   do Webgl.uniformMatrix3fv(gl, shaderProgram.nMatrixUniform, false, Webgl.Float32Array.from_float_list(mat3.to_list(normalMatrix)));
   void
 ;

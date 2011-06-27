@@ -43,7 +43,7 @@
 ##args()
 { return mat3.create(); }
 
-##register mat3_transpose : mat3, mat3 -> void
+##register mat3_transpose : mat3, mat3 -> mat3
 ##args(mat, dest)
 { return mat3.transpose(mat, dest); }
 

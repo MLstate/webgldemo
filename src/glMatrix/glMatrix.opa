@@ -31,10 +31,13 @@ vec4 = {{
 }}
 
 mat3 = {{
+  Low = {{
+    transpose : mat3, mat3 -> mat3 = %% glMatrixPlugin.mat3_transpose %% ;
+  }}
      str : mat3 -> string = %% glMatrixPlugin.mat3_str %%
      create : -> mat3 = %% glMatrixPlugin.mat3_create %% ;
-     transpose : mat3, mat3 -> void = %% glMatrixPlugin.mat3_transpose %% ;
      to_list : mat3 -> list(float) = %% glMatrixPlugin.mat3_to_list %% ;
+     transpose(mat) : mat3 = Low.transpose(mat, create());
 }}
 
 mat4 = {{
