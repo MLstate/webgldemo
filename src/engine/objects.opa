@@ -46,6 +46,20 @@ Lines = {{
     itemSize = 3;
     do Debug.assert(mod(List.length(vertices), itemSize) == 0, (-> "Lines.create : the list got an incorrec size"));
     { positions=vertexPositionBuffer; ~itemSize; numItems=List.length(vertices) / itemSize; beginMode=Webgl.LINES(gl); ~color }
+
+  grid(gl, right : int, left : int, by : int, len : float, maper, color) =
+    right = (right / by : int) * by;
+    left = (left / by : int) * by;
+    state =
+      f(state : 'state) : 'state =
+        tmp = (float_of_int(state.i), len, float_of_int(state.i), -len)
+        { l=List.cons(tmp, state.l); i=state.i + by };
+      g(state) : bool = state.i <= left;
+      for({i=right; l=List.empty}, f, g);
+    l_a = List.flatten(List.map(((a, b, c, d) -> List.append(maper(a, b), maper(c, d)) ), state.l));
+    l_b = List.flatten(List.map(((a, b, c, d) -> List.append(maper(b, a), maper(d, c)) ), state.l));
+    create(gl, List.append(l_a, l_b) : list(float), color);
+
 }}
 
 display_pickable(eng, pMatrix, mvMatrix, object : object.pickable, overide_color_for_picking) =
