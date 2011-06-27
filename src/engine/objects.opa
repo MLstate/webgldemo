@@ -31,6 +31,8 @@ display_simple(eng, object : object.simple) =
   do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, color.f1, color.f2, color.f3);
   do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
   do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
+  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), object.positions);
+  do Webgl.vertexAttribPointer(gl, shaderProgram.vertexNormalAttribute, object.itemSize, Webgl.FLOAT(gl), false, 0, 0);
   do Webgl.drawArrays(gl, Webgl.LINES(gl), 0, object.numItems);
   void ;
 
