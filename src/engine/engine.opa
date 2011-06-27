@@ -284,7 +284,7 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
       do ignore(Dom.bind(canvas_sel, { mouseup }, handler_mouseup));
       void;
     //Clear screen and make everything light gray // disabled to show png grid
-    //do Webgl.clearColor(gl, 0.875, 0.875, 0.875, 1.0);
+    do Webgl.clearColor(gl, 1.0, 1.0, 1.0, 1.0);
     //we should do depth testing so that things drawn behind other
     //things should be hidden by the things in front of them).
     do Webgl.clearDepth(gl, 1.0);
