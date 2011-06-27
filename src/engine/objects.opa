@@ -20,7 +20,6 @@ type object.pickable = {
 type object.simple = {
   positions: Webgl.WebGLBuffer;
   itemSize: int; numItems: int;
-  normals: option(Webgl.WebGLBuffer);
   beginMode: Webgl.GLenum;
   color: engine.color;
 };
@@ -44,7 +43,7 @@ Lines = {{
       Webgl.STATIC_DRAW(gl));
     itemSize = 3;
     do Debug.assert(mod(List.length(vertices), itemSize) == 0, (-> "Lines.create : the list got an incorrec size"));
-    { positions=vertexPositionBuffer; ~itemSize; numItems=List.length(vertices) / itemSize; normals=Option.none; beginMode=Webgl.LINES(gl); ~color }
+    { positions=vertexPositionBuffer; ~itemSize; numItems=List.length(vertices) / itemSize; beginMode=Webgl.LINES(gl); ~color }
 }}
 
 display_pickable(eng, pMatrix, mvMatrix, object : object.pickable, overide_color_for_picking) =
