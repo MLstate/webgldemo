@@ -44,7 +44,7 @@ Lines = {{
       Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)),
       Webgl.STATIC_DRAW(gl));
     itemSize = 3;
-    do Debug.assert(mod(List.length(vertices), itemSize) == 0, (-> "Lines.create : the list got an incorrec size"));
+    do @assert(mod(List.length(vertices), itemSize) == 0);
     { positions=vertexPositionBuffer; ~itemSize; numItems=List.length(vertices) / itemSize; beginMode=Webgl.LINES(gl); ~color }
 
   grid(gl, right : int, left : int, by : int, len : float, maper, color) =
