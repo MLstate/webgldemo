@@ -163,6 +163,7 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode,
       void
     end ;
 
+  do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
   (pMatrix, mvMatrix)
 ;
 
@@ -219,6 +220,16 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode,
       _ = drawScene_for_a_viewport(eng, {_YZ}, viewbox._YZ, views._YZ.m, scene, {normal}, Option.some(gr._YZ));
       _ = drawScene_for_a_viewport(eng, {_ZX}, viewbox._ZX, views._ZX.m, scene, {normal}, Option.some(gr._ZX));
       _ = drawScene_for_a_viewport(eng, {_3D}, viewbox._3D, views._3D.m, scene, {normal}, Option.some(gr._ZX));
+      do
+        m = mat4.create();
+        do Webgl.viewport(gl, 0, 0, eng.canvas.width, eng.canvas.height);
+        do mat4.ortho(0., float_of_int(eng.canvas.width-1), 0., float_of_int(eng.canvas.height), -10., 10., m);
+        g = float_of_int;
+        tmp = Lines.create(eng.context, [g(viewbox._YZ.x),0., 0., g(viewbox._YZ.x), g(eng.canvas.height),0., 0.,g(viewbox._YZ.h),0., g(eng.canvas.width),g(viewbox._YZ.h),0. ], (0., 0., 0.));
+        mvMatrix = mat4.create();
+        do mat4.identity(mvMatrix);
+        do setMatrixUniforms(eng.context, eng.shaderProgram, m, mvMatrix);
+        display_simple(eng, tmp);
       eng;
 
     do RequestAnimationFrame.request((_ -> aux(eng)), eng.selector);
