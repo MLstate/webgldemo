@@ -35,6 +35,18 @@ display_simple(eng, object : object.simple) =
   do Webgl.drawArrays(gl, Webgl.LINES(gl), 0, object.numItems);
   void ;
 
+Lines = {{
+  create(gl, vertices, color) =
+    vertexPositionBuffer = Webgl.createBuffer(gl);
+    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), vertexPositionBuffer);
+    do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl),
+      Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)),
+      Webgl.STATIC_DRAW(gl));
+    itemSize = 3;
+    do Debug.assert(mod(List.length(vertices), itemSize) == 0, (-> "Lines.create : the list got an incorrec size"));
+    { positions=vertexPositionBuffer; ~itemSize; numItems=List.length(vertices) / itemSize; normals=Option.none; beginMode=Webgl.LINES(gl); ~color }
+}}
+
 display_pickable(eng, pMatrix, mvMatrix, object : object.pickable, overide_color_for_picking) =
   gl = eng.context; shaderProgram = eng.shaderProgram;
   color = 

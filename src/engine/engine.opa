@@ -75,19 +75,6 @@ initShaders(gl) =
   shaderProgram
 ;
 
-initLineXBuffers(gl, orient, color) =
-  vertices = match orient with
-    | {x} -> [ 0.0, 0.0, 0.0, 5.0, 0.0, 0.0 ]
-    | {y} -> [ 0.0, 0.0, 0.0, 0.0, 5.0, 0.0 ]
-    | {z} -> [ 0.0, 0.0, 0.0, 0.0, 0.0, 5.0 ]
-    end ;
-  vertexPositionBuffer = Webgl.createBuffer(gl);
-  do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), vertexPositionBuffer);
-  do Webgl.bufferData(gl, Webgl.ARRAY_BUFFER(gl), 
-    Webgl.Float32Array.to_ArrayBuffer(Webgl.Float32Array.from_float_list(vertices)), 
-    Webgl.STATIC_DRAW(gl));
-  { positions=vertexPositionBuffer; itemSize=3; numItems=2; normals=Option.none; beginMode=Webgl.LINES(gl); ~color }
-;
 
 setMatrixUniforms(gl, shaderProgram, pMatrix, mvMatrix) =
   a = 
@@ -152,18 +139,11 @@ drawScene_for_a_viewport(eng, who, viewport, camera_setting : mat4, scene, mode)
     do mat4.identity(tmp_mvMatrix);
     Stack.push(Stack.create(), tmp_mvMatrix);
   do setMatrixUniforms(gl, shaderProgram, pMatrix, Stack.peek(mvMatrix));
-  draw_rep(r, g, b, rep) =
-    do Webgl.uniform3f(gl, shaderProgram.ambientColorUniform, r, g, b);
-    do Webgl.bindBuffer(gl, Webgl.ARRAY_BUFFER(gl), rep.positions);
-    do Webgl.vertexAttribPointer(gl, shaderProgram.vertexPositionAttribute, rep.itemSize, Webgl.FLOAT(gl), false, 0, 0);
-    do Webgl.drawArrays(gl, Webgl.LINES(gl), 0, rep.numItems);
-    void ;
 
   _ = 
     match mode with
     | {normal} ->
       do Webgl.uniform1i(gl, shaderProgram.useLightingUniform, 0); // 0 = false
-      //do draw_rep(1.0, 0.0, 0.0, repcoords.x);
       do display_simple(eng, repcoords.x);
       do display_simple(eng, repcoords.y);
       do display_simple(eng, repcoords.z);
@@ -254,7 +234,8 @@ initGL(canvas_sel, width, height, get_scene, get_camera_setting, mouse_listener,
       start = { start with shaderProgram=initShaders(gl) };
       start = { start with framePickBuffer=initPickBuffer(start) } ;
       { start with static_buffers.repcoords=
-        { x=initLineXBuffers(gl, {x}, (1.0, 0.0, 0.0)); y=initLineXBuffers(gl, {y}, (0.0, 1.0, 0.0)); z=initLineXBuffers(gl, {z}, (0.0, 0.0, 1.0)) } };
+        { x=Lines.create(gl, [0.0, 0.0, 0.0, 5.0, 0.0, 0.0], (1.0, 0.0, 0.0)); y=Lines.create(gl, [0.0, 0.0, 0.0, 0.0, 5.0, 0.0], (0.0, 1.0, 0.0));
+          z=Lines.create(gl, [0.0, 0.0, 0.0, 0.0, 0.0, 5.0], (0.0, 0.0, 1.0)) } };
     viewbox = setup_boxes(eng) ;
     {} =
       compute_abs_full_pos(rel_mouse_position_on_page) =
