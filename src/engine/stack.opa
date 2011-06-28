@@ -23,9 +23,7 @@ Stack = {{
     | { ~hd; tl=_ } -> hd
     end) ;
 
-  update_and_push : (stack, (mat4, mat4 -> void) -> stack) = (s, f ->
-    tmp = mat4.create();
-    do f(peek(s), tmp);
-    Stack.push(s, tmp)) ;
+  update_and_push : (stack, (mat4 -> mat4) -> stack) = (s, f ->
+    Stack.push(s, f(peek(s))) );
 
 }}

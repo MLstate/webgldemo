@@ -43,7 +43,7 @@
 ##args()
 { return mat3.create(); }
 
-##register mat3_transpose : mat3, mat3 -> void
+##register mat3_transpose : mat3, mat3 -> mat3
 ##args(mat, dest)
 { return mat3.transpose(mat, dest); }
 
@@ -68,39 +68,39 @@
 ##args()
 { return mat4.create(); }
 
-##register mat4_perspective : float, float, float, float, mat4 -> void
+##register mat4_perspective : float, float, float, float, mat4 -> mat4
 ##args(fovy, aspect, near, far, dest)
-{ mat4.perspective(fovy, aspect, near, far, dest); }
+{ return mat4.perspective(fovy, aspect, near, far, dest); }
 
-##register mat4_identity : mat4 -> void
+##register mat4_identity : mat4 -> mat4
 ##args(dest)
-{ mat4.identity(dest); }
+{ return mat4.identity(dest); }
 
-##register mat4_translate : mat4, vec3.private, mat4 -> void
+##register mat4_translate : mat4, vec3.private, mat4 -> mat4
 ##args(mat, vec, dest)
-{ mat4.translate(mat, vec, dest); }
+{ return mat4.translate(mat, vec, dest); }
 
 ##register mat4_str : mat4 -> string
 ##args(mat)
 { return mat4.str(mat); }
 
-##register mat4_lookAt : vec3.private, vec3.private, vec3.private, mat4 -> void
+##register mat4_lookAt : vec3.private, vec3.private, vec3.private, mat4 -> mat4
 ##args(eye, center, up, dest)
 { return mat4.lookAt(eye, center, up, dest); }
 
-##register mat4_multiply : mat4, mat4, mat4 -> void
+##register mat4_multiply : mat4, mat4, mat4 -> mat4
 ##args(mat, mat2, dest)
 { return mat4.multiply(mat, mat2, dest); }
 
-##register mat4_toInverseMat3 : mat4, mat3 -> void
+##register mat4_toInverseMat3 : mat4, mat3 -> mat3
 ##args(mat, dest)
-{ mat4.toInverseMat3(mat, dest); }
+{ return mat4.toInverseMat3(mat, dest); }
 
-##register mat4_inverse : mat4, mat4 -> void
+##register mat4_inverse : mat4, mat4 -> mat4
 ##args(mat, dest)
 { return mat4.inverse(mat, dest); }
 
-##register mat4_multiplyVec3 : mat4, vec3.private, vec3.private -> void
+##register mat4_multiplyVec3 : mat4, vec3.private, vec3.private -> vec3.private
 ##args(mat, vec, dest)
 { return mat4.multiplyVec3(mat, vec, dest); }
 
@@ -108,17 +108,17 @@
 ##args(mat)
 { return mat4.create(mat); }
 
-##register mat4_multiplyVec4 : mat4, vec4.private, vec4.private -> void
+##register mat4_multiplyVec4 : mat4, vec4.private, vec4.private -> vec4.private
 ##args(mat, vec, dest)
 { return mat4.multiplyVec4(mat, vec, dest); }
 
-##register mat4_frustum : float, float, float, float, float, float, mat4 -> void
+##register mat4_frustum : float, float, float, float, float, float, mat4 -> mat4
 ##args(left, right, bottom, top, near, far, dest)
-{ mat4.frustum(left, right, bottom, top, near, far, dest); }
+{ return mat4.frustum(left, right, bottom, top, near, far, dest); }
 
-##register mat4_ortho : float, float, float, float, float, float, mat4 -> void
+##register mat4_ortho : float, float, float, float, float, float, mat4 -> mat4
 ##args(left, right, bottom, top, near, far, dest)
-{ mat4.ortho(left, right, bottom, top, near, far, dest); }
+{ return mat4.ortho(left, right, bottom, top, near, far, dest); }
 
 ##register mat4_rotateX : mat4, float, mat4 -> mat4
 ##args(mat, angle, dest)

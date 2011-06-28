@@ -67,9 +67,7 @@ button:hover, input[type=submit]:hover, input[type=button]:hover, .button:hover,
     color: #000;
     border:1px solid #bbb;
 }
-.canvas_wrap {
-    background:#E9EDF2 url('/img/3dgrid.png') no-repeat 50% 50%;
-}
+
 .panel_top, .panel_btm {
     padding: 5px 0;
     background: #f6f6f2;

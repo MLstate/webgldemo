@@ -88,7 +88,7 @@ Scene = {{
       Option.map(f, scene.selection)
     | { possible_move; ~where; ~switch } ->
       f(sel) = 
-        where = vec3.apply(where, switch, (u -> vec3.get(sel.cube, switch)));
+        where = vec3.apply(where, switch, (_ -> vec3.get(sel.cube, switch)));
         { pid=scene.others.CPF(); command={ move_object; ~where; id=sel.id } };
       Option.map(f, scene.selection)
     | { selection_change; ... } -> Option.none
@@ -142,21 +142,17 @@ Scene = {{
 Modeler = {{
   load(scene, scene_url, client_id, ratio_h_w) : Modeler.modeler =
     g(rot, scaler) =
-      tmp = mat4.create();
       tmp_x = 1.;
-      do mat4.ortho(-tmp_x, tmp_x, -ratio_h_w, ratio_h_w, -10., 10., tmp);
-      tmp = rot(tmp);
-      mat4.scale(tmp, vec3.from_public(scaler), tmp);
+      tmp = mat4.ortho(-tmp_x, tmp_x, -ratio_h_w, ratio_h_w, -10., 10.);
+      mat4.scale(rot(tmp), vec3.from_public(scaler));
     tmp_scaler = 1. / 10.;
     _YX = { m=g(identity, (tmp_scaler, tmp_scaler, 1.0)); clear_near_far={f3} };  // we want the left border to be at -10, and the rigth at 10
-    _YZ = { m=g(m -> mat4.rotateY(m, (90. * Math.PI / 180.), m), (1.0, tmp_scaler, tmp_scaler)); clear_near_far={f1} };
-    _ZX = { m=g(m -> mat4.rotateX(m, (90. * Math.PI / 180.), m), (tmp_scaler, 1.0, tmp_scaler)); clear_near_far={f2} };
+    _YZ = { m=g(m -> mat4.rotateY(m, (90. * Math.PI / 180.)), (1.0, tmp_scaler, tmp_scaler)); clear_near_far={f1} };
+    _ZX = { m=g(m -> mat4.rotateX(m, (90. * Math.PI / 180.)), (tmp_scaler, 1.0, tmp_scaler)); clear_near_far={f2} };
     _3D =
-      tmp_pMatrix = mat4.create();
-      do mat4.perspective(45., 1. / ratio_h_w, 0.1, 100.0, tmp_pMatrix);
-      c = mat4.create() ;
-      do mat4.lookAt(vec3.from_public((10.0, 5.0, 15.0)), vec3.from_public((0., 0., 0.)), vec3.from_public((0.0, 1.0, 0.0)), c);
-      do mat4.multiply(tmp_pMatrix, c, tmp_pMatrix);
+      tmp_pMatrix = mat4.perspective(45., 1. / ratio_h_w, 0.1, 100.0);
+      c = mat4.lookAt(vec3.from_public((10.0, 5.0, 15.0)), vec3.from_public((0., 0., 0.)), vec3.from_public((0.0, 1.0, 0.0)));
+      tmp_pMatrix = mat4.multiply(tmp_pMatrix, c);
       { m=tmp_pMatrix; clear_near_far={f2} } ;
     views = { ~_YX; ~_YZ; ~_ZX; ~_3D };
     { address=scene_url; ~scene; tool={selection}; ~client_id; ~views } ;
