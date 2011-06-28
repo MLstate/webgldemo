@@ -10,6 +10,23 @@ type GuiModeler.t = {
   width: int; height: int
 } ;
 
+type subjects_changes = list({tool} / { selection: list({this} / {color}) });
+
+apply_changes(state : GuiModeler.t, changes : subjects_changes) =
+  modeler = state.modeler;
+  a(tmp_a, sub) = match tmp_a with
+    | {tool} -> { sub with tool=Observable.change_state(modeler.tool, sub.tool) }
+    | {selection=chan_sel} ->
+      b(tmp_b, sel) = match tmp_b with
+        | {this} -> { sel with this=Observable.change_state(modeler.scene.selection, sel.this) }
+        | {color} ->
+          tmp = Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection);
+          { sel with color=Observable.change_state(tmp , sel.color) }
+        end;
+      { sub with selection=List.fold(b, chan_sel, sub.selection) }
+    end;
+  { state with subjects=List.fold(a, changes : subjects_changes, state.subjects) } : GuiModeler.t;
+
 @client GuiModeler = {{
 
   Sync = {{
