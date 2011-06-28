@@ -76,7 +76,8 @@ type Central.Modelers.sync.message =
       state = `Central.Modelers`.apply_patch(state, address, patch);
       { set=state }
     | { ~with_address_list } ->
-      _ = with_address_list(`Central.Modelers`.get_address_list(state))
+      l = List.sort_by((_ -> Random.int(max_int)), `Central.Modelers`.get_address_list(state));
+      _ = with_address_list(l)
       { unchanged }
     end;
   Session.make_dynamic(`Central.Modelers`.empty(), on_message);
