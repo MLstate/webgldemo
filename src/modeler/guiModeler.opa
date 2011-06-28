@@ -54,13 +54,10 @@ apply_changes(state : GuiModeler.t, changes : subjects_changes) =
     subjects = { tool=Observable.make(modeler.tool); selection={ this=Observable.make(modeler.scene.selection); color=Observable.make( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) ) } };
     { ~modeler; ~subjects; ~width; ~height };
 
-  @private on_message(state : GuiModeler.t, message) = 
-    _set_modeler(modeler) = { set={ state with ~modeler } } ;
-    _set_subjects(subjects) = { set={ state with ~subjects } } ;
+  @private on_message(state : GuiModeler.t, message) =
     set(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
-    _set_with_last(new_state) = { set={ state with subjects=new_state.subjects; modeler=new_state.modeler } };
     send_opatch(opatch) =
-      m(patch) = { apply_patch; ~patch; address=state.modeler.address }; 
+      m(patch) = { apply_patch; ~patch; address=state.modeler.address };
       Option.iter((p -> Session.send(central_modelers, m(p))), opatch);
     apply_changes(modeler, cs) = apply_changes({ state with ~modeler }, cs);
     reset_subjects(modeler) = apply_changes(modeler, [{selection=[{this}, {color}] }]);
