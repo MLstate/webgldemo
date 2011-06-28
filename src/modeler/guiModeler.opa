@@ -62,10 +62,8 @@ apply_changes(state : GuiModeler.t, changes : subjects_changes) =
     send_opatch(opatch) =
       m(patch) = { apply_patch; ~patch; address=state.modeler.address }; 
       Option.iter((p -> Session.send(central_modelers, m(p))), opatch);
-    reset_subjects(modeler) =
-      subjects = { state.subjects with selection={ this=Observable.change_state(modeler.scene.selection, state.subjects.selection.this); 
-                                                   color=Observable.change_state( Option.switch((o->o.color), ColorFloat.random(), modeler.scene.selection) , state.subjects.selection.color) } };
-      { state with ~subjects; ~modeler };
+    apply_changes(modeler, cs) = apply_changes({ state with ~modeler }, cs);
+    reset_subjects(modeler) = apply_changes(modeler, [{selection=[{this}, {color}] }]);
     match message with
     | {click_on_scene; ~where; ~possible_target} ->
       (modeler, opatch) = Modeler.tool_use(state.modeler, where, possible_target);
@@ -73,18 +71,15 @@ apply_changes(state : GuiModeler.t, changes : subjects_changes) =
       if Observable.get_state(state.subjects.selection.this) == modeler.scene.selection then
         { set={ state with ~modeler } }
       else
-        state = reset_subjects(modeler);
-        set(state)
+        set(reset_subjects(modeler))
     | {modeler_change_tool=new_tool} ->
       modeler = Modeler.tool_change(state.modeler, new_tool);
-      subjects = { state.subjects with tool=Observable.change_state(new_tool, state.subjects.tool) };
-      set({ ~subjects; ~modeler })
+      set(apply_changes(modeler, [{tool}]))
     | {modeler_change_scene_selection_color; ~new_color} ->
       (modeler, opatch) = Modeler.scene_change_selection_color(state.modeler, new_color);
       do send_opatch(opatch);
-      subjects = { state.subjects with selection.color=Observable.change_state(new_color, state.subjects.selection.color) };
-      set({ ~subjects; ~modeler})
-    | {modeler_apply_possible_move; ~where; ~switch } -> 
+      set(apply_changes(modeler, [{selection=[{color}]}]))
+    | {modeler_apply_possible_move; ~where; ~switch } ->
       (modeler, opatch) = Modeler.do_possible_move(state.modeler, where, switch);
       do send_opatch(opatch);
       { set={ state with ~modeler } }
