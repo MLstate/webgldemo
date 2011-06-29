@@ -2,7 +2,7 @@ html {background: #556270;}
 body {
   color:#DDD;
   font-size:85%;
-  line-height:1.4em;
+  /*line-height:1.4em;*/
   font-weight: normal;
   font-family: "Lucida Grande", Arial, sans-serif;
   text-align:center;
@@ -89,4 +89,49 @@ button:hover, input[type=submit]:hover, input[type=button]:hover, .button:hover,
     border-radius:0em 0em 0.3em 0.3em;
     -moz-border-radius:0em 0em 0.3em 0.3em;
     -webkit-border-radius:0em 0em 0.3em 0.3em;
+}
+
+#welcomeArea {
+  text-align:right;
+  width: 60%;
+  /*border: 1px solid;*/
+}
+
+#welcomeArea > h3 {
+  font-size: 65%;
+}
+
+#welcomeArea > h1 {
+  /*text-transform: uppercase;*/
+  font-variant: small-caps;
+  font-size: 250%;
+  letter-spacing: -1px;
+  /*line-height: 60px;*/
+  margin-top: 10%;
+}
+
+#welcomeArea > hr {
+  width: 50%;
+  border: 1px;
+  border-style: none none dashed;
+  margin: 0 0 0 auto;
+}
+
+#welcomeArea .arrow {
+  font-size: 180%;
+}
+
+#welcomeArea ul {
+  margin-top: 0px;
+}
+#welcomeArea li {
+  margin-right: 2%;
+}
+#welcomeArea li > .arrow {
+  margin-left: 1%;
+}
+#welcomeArea li > a {
+  font-family: monospace;
+  font-size: 1.5em;
+  letter-spacing: -1px;
 }
