@@ -82,8 +82,8 @@ apply_changes(state : GuiModeler.t, changes : subjects_changes) =
 
   setup_menu(parent_sel, channel, s_tool) : void =
     f(some_tool) = match some_tool with
-      | {selection} -> (<span class="button active">Select</span>, <span class="button">Cube</span>)
-      | {add_cube} -> (<span class="button">Select</span>, <span class="button active">Cube</span>)
+      | {selection} -> (<span class="button active">&#8598; Select</span>, <span class="button">&#10065; Cube</span>)
+      | {add_cube} -> (<span class="button">&#8598; Select</span>, <span class="button active">&#10065; Cube</span>)
       end ;
     (id_a, id_b) = (Random.string(7), Random.string(7));
     on_tool_change = 
