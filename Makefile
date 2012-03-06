@@ -1,3 +1,4 @@
+OPAOPT=--parser classic
 
 all: build
 run:
