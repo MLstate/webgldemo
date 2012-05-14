@@ -9,16 +9,16 @@ type Modeler.Shared.modeler = {
 
 @server `Modeler.Shared` = {{
 
-  empty(server_id, address) : Modeler.Shared.modeler = 
+  empty(server_id, address) : Modeler.Shared.modeler =
     { scene=Scene.empty(SHF, server_id); ~address; clients=List.empty };
 
   add_client(modsha, client) : Modeler.Shared.modeler =
     do Session.send(client, { load=modsha.scene });
     { modsha with clients=List.cons(client, modsha.clients) };
 
-  apply_patch(modsha, patch) : Modeler.Shared.modeler = 
+  apply_patch(modsha, patch) : Modeler.Shared.modeler =
     do Log.info("Modeler.Shared", "a patch as been apply for address '{modsha.address}'");
-    do 
+    do
       f(c) = Session.send(c, { write_patch; ~patch});
       List.iter(f, modsha.clients);
     { modsha with scene=Scene.apply_patch(modsha.scene, patch) };
@@ -27,13 +27,13 @@ type Modeler.Shared.modeler = {
 
 
 type Central.Modelers.state = { my_id: int; files: stringmap(Modeler.Shared.modeler) };
-type Central.Modelers.message = 
+type Central.Modelers.message =
   { register; scene_url: string; sync_channel: channel(Central.Modelers.sync.message); client_id: int }
 / { apply_patch; patch: Scene.patch; address: string }
 / { with_address_list : list(string) -> void }
 ;
 
-type Central.Modelers.sync.message = 
+type Central.Modelers.sync.message =
   { load: Scene.scene }
 / { write_patch; patch: Scene.patch };
 
@@ -68,7 +68,7 @@ type Central.Modelers.sync.message =
   on_message(state : Central.Modelers.state, message) = match message with
     | { register; ~scene_url; ~sync_channel; client_id=_ } ->
       do Log.info("CM", "register for url '{scene_url}'");
-      state = 
+      state =
         up(modsha) = `Modeler.Shared`.add_client(modsha, sync_channel);
         `Central.Modelers`.update_file(state, scene_url, up);
       { set=state }
@@ -76,7 +76,7 @@ type Central.Modelers.sync.message =
       state = `Central.Modelers`.apply_patch(state, address, patch);
       { set=state }
     | { ~with_address_list } ->
-      l = List.sort_by((_ -> Random.int(max_int)), `Central.Modelers`.get_address_list(state));
+      l = List.sort_by((_ -> Random.int(Limits.max_int)), `Central.Modelers`.get_address_list(state));
       _ = with_address_list(l)
       { unchanged }
     end;
